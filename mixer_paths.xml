@@ -38,6 +38,10 @@
 	<ctl name="ADC IF3 Data Switch" value="L/R"/>
 
 	<ctl name="TDM Data Mux" value="AD1:AD2:DAC:NUL"/>
+	<ctl name="IF2 ADC Mux" value="IF_ADC2"/>
+
+	<ctl name="AD MONOR Clk Sel" value="clk_sysy_div_out"/>
+	<ctl name="AD STO1 Clk Sel" value="clk_sysy_div_out"/>
 
 	<ctl name="HP Switch" value="0"/>
 	<ctl name="SPK Switch" value="0"/>
@@ -867,7 +871,7 @@
 		</path>
 
 		<path name="incall_nb-speaker-mic">
-			<ctl name="AD MONOR Clk Sel" value="clk_i2s2_track"/>
+			<ctl name="AD STO1 Clk Sel" value="clk_i2s2_track"/>
 			<ctl name="RECMIX1L BST4 Switch" value="1"/>
 			<ctl name="RECMIX1R BST3 Switch" value="1"/>
 			<ctl name="Stereo1 ADC Source" value="ADC1"/>
@@ -876,6 +880,7 @@
 			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="1"/>
 			<ctl name="Main Mic Switch" value="1" />
 			<ctl name="Sub Mic Switch" value="1" />
+			<ctl name="IF2 ADC Mux" value="IF_ADC1"/>
 			<!-- Record -->
 			<ctl name="Mono ADC R Mux" value="ADC1 L"/>
 			<ctl name="Mono ADC R1 Mux" value="ADC"/>

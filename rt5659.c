@@ -1281,7 +1281,7 @@ static int rt5659_clk_sel_put(struct snd_kcontrol *kcontrol,
 
 	if (u_bit || p_bit) {
 		switch (ucontrol->value.integer.value[0]) {
-		case 1: /*enable*/
+		case 1:
 		case 2:
 		case 3:
 			u_bit |= (1 << (10 + ucontrol->value.integer.value[0]));
@@ -1289,9 +1289,7 @@ static int rt5659_clk_sel_put(struct snd_kcontrol *kcontrol,
 				snd_soc_update_bits(codec,
 					RT5659_ASRC_1, u_bit, u_bit);
 			break;
-		default: /*disable*/
-			u_bit |= 0x3800;
-			snd_soc_update_bits(codec, RT5659_ASRC_1, u_bit, 0);
+		default:
 			break;
 		}
 	}
