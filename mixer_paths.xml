@@ -229,7 +229,7 @@
 		</path>
 
 		<path name="volte_vt_ap_nb-speaker">
-			<path name="communication-speaker" />
+			<path name="media-speaker" />
 		</path>
 
 		<path name="volte_vt_ap_nb-headset">
@@ -246,23 +246,23 @@
 
 		<!-- VoLTE AP WB -->
 		<path name="volte_vt_ap_wb-handset">
-			<path name="media-handset" />
+			<path name="volte_vt_ap_nb-handset" />
 		</path>
 
 		<path name="volte_vt_ap_wb-speaker">
-			<path name="communication-speaker" />
+			<path name="volte_vt_ap_nb-speaker" />
 		</path>
 
 		<path name="volte_vt_ap_wb-headset">
-			<path name="media-headset" />
+			<path name="volte_vt_ap_nb-headset" />
 		</path>
 
 		<path name="volte_vt_ap_wb-headphone">
-			<path name="media-headset" />
+			<path name="volte_vt_ap_nb-headphone" />
 		</path>
 
 		<path name="volte_vt_ap_wb-bt-sco-headset">
-			<path name="media-bt-sco-headset" />
+			<path name="volte_vt_ap_nb-bt-sco-headset" />
 		</path>
 
 		<!-- CP Call Output -->
@@ -366,6 +366,7 @@
 
 		<!-- WB -->
 		<path name="incall_wb-handset">
+			<path name="incall_nb-handset" />
 		</path>
 
 		<path name="incall_wb-speaker">
@@ -386,6 +387,7 @@
 
 		<!-- WB/EXTRA_VOL -->
 		<path name="incall_wb_extra_vol-handset">
+			<path name="incall_wb-handset" />
 		</path>
 
 		<path name="incall_wb_extra_vol-speaker">
@@ -433,6 +435,7 @@
 
 		<!-- VoLTE CP NB/EXTRA_VOL -->	
 		<path name="volte_cp_nb_extra_vol-handset">
+			<path name="incall_nb-handset" />
 		</path>
 
 		<path name="volte_cp_nb_extra_vol-speaker">
@@ -441,6 +444,7 @@
 
 		<!-- VoLTE CP NB/EXTRA_VOL/HANDOVER -->	
 		<path name="volte_cp_nb_extra_vol_handover-handset">
+			<path name="incall_nb-handset" />
 		</path>
 
 		<path name="volte_cp_nb_extra_vol_handover-speaker">
@@ -470,52 +474,53 @@
 
 		<!-- VoLTE CP WB -->
 		<path name="volte_cp_wb-handset">
-			<path name="incall_wb-handset" />
+			<path name="volte_cp_nb-handset" />
 		</path>
 
 		<path name="volte_cp_wb-speaker">
-			<path name="incall_wb-speaker" />
+			<path name="volte_cp_nb-speaker" />
 		</path>
 
 		<path name="volte_cp_wb-headset">
-			<path name="incall_wb-headset" />
+			<path name="volte_cp_nb-headset" />
 		</path>
 
 		<path name="volte_cp_wb-headphone">
-			<path name="incall_wb-headphone" />
+			<path name="volte_cp_nb-headphone" />
 		</path>
 
 		<path name="volte_cp_wb-bt-sco-headset">
-			<path name="incall_wb-bt-sco-headset" />
+			<path name="volte_cp_nb-bt-sco-headset" />
 		</path>
 
 		<!-- VoLTE CP WB/EXTRA_VOL -->
 		<path name="volte_cp_wb_extra_vol-handset">
+			<path name="volte_cp_nb_extra_vol-handset" />
 		</path>
 
 		<path name="volte_cp_wb_extra_vol-speaker">
-			<path name="incall_wb-speaker" />
+			<path name="volte_cp_nb_extra_vol-speaker" />
 		</path>
 
 		<!-- VoLTE VT CP WB -->
 		<path name="volte_vt_cp_wb-handset">
-			<path name="incall_wb-handset" />
+			<path name="volte_vt_cp_nb-handset" />
 		</path>
 
 		<path name="volte_vt_cp_wb-speaker">
-			<path name="incall_wb-speaker" />
+			<path name="volte_vt_cp_nb-speaker" />
 		</path>
 
 		<path name="volte_vt_cp_wb-headset">
-			<path name="incall_wb-headset" />
+			<path name="volte_vt_cp_nb-headset" />
 		</path>
 
 		<path name="volte_vt_cp_wb-headphone">
-			<path name="incall_wb-headphone" />
+			<path name="volte_vt_cp_nb-headphone" />
 		</path>
 
 		<path name="volte_vt_cp_wb-bt-sco-headset">
-			<path name="incall_wb-bt-sco-headset" />
+			<path name="volte_vt_cp_nb-bt-sco-headset" />
 		</path>
 
 		<!-- Packet Loopback -->
@@ -565,13 +570,12 @@
 		<!-- Input stage -->
 		<path name="main-mic">
 			<ctl name="RECMIX1L BST4 Switch" value="1"/>
-			<ctl name="RECMIX1R BST3 Switch" value="1"/>
+			<ctl name="RECMIX1R BST4 Switch" value="1"/>
 			<ctl name="Stereo1 ADC Source" value="ADC1"/>
 			<ctl name="Stereo1 ADC1 Source" value="ADC"/>
 			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="1"/>
 			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="1"/>
 			<ctl name="Main Mic Switch" value="1" />
-			<ctl name="Sub Mic Switch" value="1" />
 		</path>
 
 		<path name="headset-mic">
@@ -613,8 +617,15 @@
 
 		<!-- camcorder input -->
 		<path name="camcorder-mic">
-			<path name="capture_channel_left" />
-			<path name="main-mic" />
+			<!-- stereo input -->
+			<ctl name="RECMIX1L BST4 Switch" value="1"/>
+			<ctl name="RECMIX1R BST3 Switch" value="1"/>
+			<ctl name="Stereo1 ADC Source" value="ADC1"/>
+			<ctl name="Stereo1 ADC1 Source" value="ADC"/>
+			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="1"/>
+			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="1"/>
+			<ctl name="Main Mic Switch" value="1" />
+			<ctl name="Sub Mic Switch" value="1" />
 		</path>
 
 		<path name="camcorder-headset-mic">
@@ -683,8 +694,7 @@
 
 		<!-- svoice/carmode samsung input -->
 		<path name="dualmic_samsung_engine-mic">
-			<path name="capture_channel_stereo" />
-			<path name="main-mic" />
+			<path name="camcorder-mic" />
 		</path>
 
 		<path name="dualmic_samsung_engine-headset-mic">
@@ -731,12 +741,10 @@
 
 		<!-- samsung voip input -->
 		<path name="samsung_voip-handset-mic">
-			<path name="capture_channel_stereo" />
 			<path name="main-mic" />
 		</path>
 
 		<path name="samsung_voip-speaker-mic">
-			<path name="capture_channel_left" />
 			<path name="main-mic" />
 		</path>
 
@@ -801,7 +809,7 @@
 		</path>
 
 		<path name="volte_vt_ap_nb-speaker-mic">
-			<path name="capture_channel_left" />
+			<path name="media-mic" />
 		</path>
 
 		<path name="volte_vt_ap_nb-headset-mic">
@@ -818,23 +826,23 @@
 
 		<!-- VoLTE AP WB -->
 		<path name="volte_vt_ap_wb-handset-mic">
-			<path name="media-mic" />
+			<path name="volte_vt_ap_nb-handset-mic" />
 		</path>
 
 		<path name="volte_vt_ap_wb-speaker-mic">
-			<path name="capture_channel_left" />
+			<path name="volte_vt_ap_nb-speaker-mic" />
 		</path>
 
 		<path name="volte_vt_ap_wb-headset-mic">
-			<path name="media-headset-mic" />
+			<path name="volte_vt_ap_nb-headset-mic" />
 		</path>
 
 		<path name="volte_vt_ap_wb-headphone-mic">
-			<path name="media-mic" />
+			<path name="volte_vt_ap_nb-headphone-mic" />
 		</path>
 
 		<path name="volte_vt_ap_wb-bt-sco-headset-in">
-			<path name="media-bt-sco-headset-in" />
+			<path name="volte_vt_ap_nb-bt-sco-headset-in" />
 		</path>
 
 		<!-- CP Call input -->
@@ -934,6 +942,7 @@
 
 		<!-- NB handover-->
 		<path name="incall_nb_handover-handset-mic">
+			<path name="incall_nb-handset-mic" />
 		</path>
 
 		<path name="incall_nb_handover-speaker-mic">
@@ -950,6 +959,7 @@
 
 		<!-- NB/EXTRA_VOL -->
 		<path name="incall_nb_extra_vol-handset-mic">
+			<path name="incall_nb-handset-mic" />
 		</path>
 
 		<path name="incall_nb_extra_vol-speaker-mic">
@@ -958,6 +968,7 @@
 
 		<!-- NB/EXTRA_VOL/HANDOVER -->
 		<path name="incall_nb_extra_vol_handover-handset-mic">
+			<path name="incall_nb-handset-mic" />
 		</path>
 
 		<path name="incall_nb_extra_vol_handover-speaker-mic">
@@ -988,6 +999,7 @@
 
 		<!-- WB/EXTRA_VOL -->
 		<path name="incall_wb_extra_vol-handset-mic">
+			<path name="incall_nb-handset-mic" />
 		</path>
 
 		<path name="incall_wb_extra_vol-speaker-mic">
@@ -1019,6 +1031,7 @@
 
 		<!-- VoLTE CP NB/EXTRA_VOL-->
 		<path name="volte_cp_nb_extra_vol-handset-mic">
+			<path name="incall_nb-handset-mic" />
 		</path>
 
 		<path name="volte_cp_nb_extra_vol-speaker-mic">
@@ -1027,6 +1040,7 @@
 
 		<!-- VoLTE CP NB/EXTRA_VOL/HANDOVER -->
 		<path name="volte_cp_nb_extra_vol_handover-handset-mic">
+			<path name="incall_nb-handset-mic" />
 		</path>
 
 		<path name="volte_cp_nb_extra_vol_handover-speaker-mic">
@@ -1035,6 +1049,7 @@
 
 		<!-- VoLTE CP NB/HANDOVER -->
 		<path name="volte_cp_nb_handover-handset-mic">
+			<path name="incall_nb-handset-mic" />
 		</path>
 
 		<path name="volte_cp_nb_handover-speaker-mic">
@@ -1164,11 +1179,12 @@
 		</path>
 
 		<path name="echo_test-dualmic">
-			<path name="capture_channel_stereo" />
+			<path name="camcorder-mic" />
 		</path>
 
 		<!-- call forwarding input -->
 		<path name="call_forwarding_master-mic">
+			<path name="communication-handset-mic" />
 		</path>
 
 		<path name="call_forwarding_slave-handset-mic">
