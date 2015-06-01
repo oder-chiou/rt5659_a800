@@ -2108,6 +2108,7 @@
 
 		<path name="gain-volte_vt_cp_nb-headphone-mic">
 			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN3 Boost Volume" value="64"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
@@ -2141,6 +2142,7 @@
 
 		<path name="gain-volte_cp_nb-headphone-mic">
 			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN3 Boost Volume" value="64"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
@@ -2217,6 +2219,7 @@
 
 		<path name="gain-volte_cp_wb-headphone-mic">
 			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN3 Boost Volume" value="64"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
@@ -2264,6 +2267,7 @@
 
 		<path name="gain-volte_vt_cp_wb-headphone-mic">
 			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN3 Boost Volume" value="64"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
@@ -2298,6 +2302,7 @@
 
 		<path name="gain-incall_nb-headphone-mic">
 			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN3 Boost Volume" value="64"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
@@ -2379,6 +2384,7 @@
 
 		<path name="gain-incall_wb-headphone-mic">
 			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN3 Boost Volume" value="64"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
