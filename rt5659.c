@@ -1239,6 +1239,8 @@ static int rt5659_clk_sel_put(struct snd_kcontrol *kcontrol,
 {
 	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
 	unsigned int u_bit = 0, p_bit = 0;
+	unsigned int asrc2, asrc3;
+	int ret;
 	struct soc_enum *em =
 		(struct soc_enum *)kcontrol->private_value;
 
@@ -1281,7 +1283,7 @@ static int rt5659_clk_sel_put(struct snd_kcontrol *kcontrol,
 
 	if (u_bit || p_bit) {
 		switch (ucontrol->value.integer.value[0]) {
-		case 1:
+		case 1: /*enable*/
 		case 2:
 		case 3:
 			u_bit |= (1 << (10 + ucontrol->value.integer.value[0]));
@@ -1289,8 +1291,63 @@ static int rt5659_clk_sel_put(struct snd_kcontrol *kcontrol,
 				snd_soc_update_bits(codec,
 					RT5659_ASRC_1, u_bit, u_bit);
 			break;
-		default:
-			break;
+		default: /*disable*/
+			ret = snd_soc_put_value_enum_double(kcontrol, ucontrol);
+
+			asrc2 = snd_soc_read(codec, RT5659_ASRC_2);
+			asrc3 = snd_soc_read(codec, RT5659_ASRC_3);
+
+			if ((((asrc2 & RT5659_DA_STO_T_MASK) >>
+				RT5659_DA_STO_T_SFT) != 1) &&
+			(((asrc2 & RT5659_DA_MONO_L_T_MASK) >>
+				RT5659_DA_MONO_L_T_SFT) != 1) &&
+			(((asrc2 & RT5659_DA_MONO_R_T_MASK) >>
+				RT5659_DA_MONO_R_T_SFT) != 1) &&
+			(((asrc2 & RT5659_AD_STO1_T_MASK) >>
+				RT5659_AD_STO1_T_SFT) != 1) &&
+			(((asrc3 & RT5659_AD_STO2_T_MASK) >>
+				RT5659_AD_STO2_T_SFT) != 1) &&
+			(((asrc3 & RT5659_AD_MONO_L_T_MASK) >>
+				RT5659_AD_MONO_L_T_SFT) != 1) &&
+			(((asrc3 & RT5659_AD_MONO_R_T_MASK) >>
+				RT5659_AD_MONO_R_T_SFT) != 1))
+				u_bit |= 0x0800;
+
+			if ((((asrc2 & RT5659_DA_STO_T_MASK) >>
+				RT5659_DA_STO_T_SFT) != 2) &&
+			(((asrc2 & RT5659_DA_MONO_L_T_MASK) >>
+				RT5659_DA_MONO_L_T_SFT) != 2) &&
+			(((asrc2 & RT5659_DA_MONO_R_T_MASK) >>
+				RT5659_DA_MONO_R_T_SFT) != 2) &&
+			(((asrc2 & RT5659_AD_STO1_T_MASK) >>
+				RT5659_AD_STO1_T_SFT) != 2) &&
+			(((asrc3 & RT5659_AD_STO2_T_MASK) >>
+				RT5659_AD_STO2_T_SFT) != 2) &&
+			(((asrc3 & RT5659_AD_MONO_L_T_MASK) >>
+				RT5659_AD_MONO_L_T_SFT) != 2) &&
+			(((asrc3 & RT5659_AD_MONO_R_T_MASK) >>
+				RT5659_AD_MONO_R_T_SFT) != 2))
+				u_bit |= 0x1000;
+
+			if ((((asrc2 & RT5659_DA_STO_T_MASK) >>
+				RT5659_DA_STO_T_SFT) != 3) &&
+			(((asrc2 & RT5659_DA_MONO_L_T_MASK) >>
+				RT5659_DA_MONO_L_T_SFT) != 3) &&
+			(((asrc2 & RT5659_DA_MONO_R_T_MASK) >>
+				RT5659_DA_MONO_R_T_SFT) != 3) &&
+			(((asrc2 & RT5659_AD_STO1_T_MASK) >>
+				RT5659_AD_STO1_T_SFT) != 3) &&
+			(((asrc3 & RT5659_AD_STO2_T_MASK) >>
+				RT5659_AD_STO2_T_SFT) != 3) &&
+			(((asrc3 & RT5659_AD_MONO_L_T_MASK) >>
+				RT5659_AD_MONO_L_T_SFT) != 3) &&
+			(((asrc3 & RT5659_AD_MONO_R_T_MASK) >>
+				RT5659_AD_MONO_R_T_SFT) != 3))
+				u_bit |= 0x2000;
+
+			snd_soc_update_bits(codec, RT5659_ASRC_1, u_bit, 0);
+
+			return ret;
 		}
 	}
 
@@ -3849,7 +3906,6 @@ static int rt5659_set_dai_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 		rt5659->master[dai->id] = 1;
 		break;
 	case SND_SOC_DAIFMT_CBS_CFS:
-		reg_val |= RT5659_I2S_MS_S;
 		rt5659->master[dai->id] = 0;
 		break;
 	default:
@@ -3884,18 +3940,15 @@ static int rt5659_set_dai_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 
 	switch (dai->id) {
 	case RT5659_AIF1:
-		snd_soc_update_bits(codec, RT5659_I2S1_SDP,
-			RT5659_I2S_MS_MASK | RT5659_I2S_BP_MASK |
+		snd_soc_update_bits(codec, RT5659_I2S1_SDP, RT5659_I2S_BP_MASK |
 			RT5659_I2S_DF_MASK, reg_val);
 		break;
 	case RT5659_AIF2:
-		snd_soc_update_bits(codec, RT5659_I2S2_SDP,
-			RT5659_I2S_MS_MASK | RT5659_I2S_BP_MASK |
+		snd_soc_update_bits(codec, RT5659_I2S2_SDP, RT5659_I2S_BP_MASK |
 			RT5659_I2S_DF_MASK, reg_val);
 		break;
 	case RT5659_AIF3:
-		snd_soc_update_bits(codec, RT5659_I2S3_SDP,
-			RT5659_I2S_MS_MASK | RT5659_I2S_BP_MASK |
+		snd_soc_update_bits(codec, RT5659_I2S3_SDP, RT5659_I2S_BP_MASK |
 			RT5659_I2S_DF_MASK, reg_val);
 		break;
 	default:
