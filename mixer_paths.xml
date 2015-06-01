@@ -925,7 +925,7 @@
 			<ctl name="AD MONOL Clk Sel" value="clk_i2s2_track"/>
 			<ctl name="AD MONOR Clk Sel" value="clk_i2s2_track"/>
 			<ctl name="RECMIX1L BST4 Switch" value="1"/>
-			<ctl name="RECMIX1R BST4 Switch" value="1"/>
+			<ctl name="RECMIX1R BST3 Switch" value="1"/>
 			<ctl name="Mono ADC L Mux" value="ADC1 L"/>
 			<ctl name="Mono ADC R Mux" value="ADC1 R"/>
 			<ctl name="Mono ADC L1 Mux" value="ADC"/>
@@ -933,6 +933,7 @@
 			<ctl name="Mono ADC MIXL ADC1 Switch" value="1"/>
 			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
 			<ctl name="Main Mic Switch" value="1" />
+			<ctl name="Sub Mic Switch" value="1" />
 			<!-- Record -->
 			<ctl name="Stereo1 ADC Source" value="ADC1"/>
 			<ctl name="Stereo1 ADC1 Source" value="ADC"/>
