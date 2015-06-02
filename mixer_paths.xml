@@ -731,9 +731,10 @@
 			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="1"/>
 			<ctl name="Main Mic Switch" value="1" />
 			<!-- Echo Ref -->
+			<ctl name="DAC IF3 Data Switch" value="L/L"/>
 			<ctl name="DAC R2 Mux" value="IF3 DAC"/>
 			<ctl name="DA MONOR Clk Sel" value="clk_i2s3_track"/>
-			<ctl name="Stereo DAC MIXR DAC L2 Switch" value="1"/>
+			<ctl name="Stereo DAC MIXR DAC R2 Switch" value="1"/>
 			<ctl name="DAC MIXR Mux" value="Stereo DAC Mixer"/>
 			<ctl name="Stereo1 ADC2 Source" value="DAC MIX"/>
 			<ctl name="Stereo1 ADC MIXR ADC2 Switch" value="1"/>
