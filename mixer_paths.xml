@@ -589,7 +589,7 @@
 			<path name="communication-bt-sco-headset" />
 		</path>
 
-		<path name="fm-radio-speaker">
+		<path name="fm_radio-speaker">
 			<ctl name="DAC L2 Mux" value="IF3 DAC"/>
 			<ctl name="DAC R2 Mux" value="IF3 DAC"/>
 			<ctl name="DA MONOL Clk Sel" value="clk_i2s3_track"/>
@@ -610,7 +610,7 @@
 			<ctl name="Stereo1 ADC MIXR ADC2 Switch" value="1"/>
 		</path>
 
-		<path name="fm-radio-headset">
+		<path name="fm_radio-headset">
 			<ctl name="DAC L2 Mux" value="IF3 DAC"/>
 			<ctl name="DAC R2 Mux" value="IF3 DAC"/>
 			<ctl name="DA MONOL Clk Sel" value="clk_i2s3_track"/>
