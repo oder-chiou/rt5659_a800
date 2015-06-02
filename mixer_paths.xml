@@ -628,6 +628,7 @@
 			<ctl name="Mono ADC MIXL ADC2 Switch" value="1"/>
 			<ctl name="Mono ADC MIXR ADC2 Switch" value="1"/>
 			<ctl name="TDM Data Mux" value="AD2:AD1:DAC:NUL"/>
+			<ctl name="ADC IF1 2/3 Data Switch" value="L/R"/>
 		</path>
 
 		<path name="samsung-sidesync">
