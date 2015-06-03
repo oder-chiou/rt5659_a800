@@ -2955,11 +2955,26 @@ static int rt5659_sto1_filter_event(struct snd_soc_dapm_widget *w,
 {
 	struct snd_soc_codec *codec = w->codec;
 	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
+	static unsigned int sto_dac_mixer, mono_dac_mixer;
 
 	pr_debug("%s\n", __func__);
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
+		sto_dac_mixer = snd_soc_read(codec, RT5659_STO_DAC_MIXER);
+		mono_dac_mixer = snd_soc_read(codec, RT5659_MONO_DAC_MIXER);
+
+		snd_soc_update_bits(codec, RT5659_STO_DAC_MIXER,
+			RT5659_M_DAC_L1_STO_L | RT5659_M_DAC_R1_STO_L |
+			RT5659_M_DAC_L1_STO_R | RT5659_M_DAC_R1_STO_R,
+			RT5659_M_DAC_L1_STO_L | RT5659_M_DAC_R1_STO_L |
+			RT5659_M_DAC_L1_STO_R | RT5659_M_DAC_R1_STO_R);
+		snd_soc_update_bits(codec, RT5659_MONO_DAC_MIXER,
+			RT5659_M_DAC_L1_MONO_L | RT5659_M_DAC_R1_MONO_L |
+			RT5659_M_DAC_L1_MONO_R | RT5659_M_DAC_R1_MONO_R,
+			RT5659_M_DAC_L1_MONO_L | RT5659_M_DAC_R1_MONO_L |
+			RT5659_M_DAC_L1_MONO_R | RT5659_M_DAC_R1_MONO_R);
+
 		snd_soc_update_bits(codec, RT5659_STO_DRE_CTRL_1, 0x8000,
 			0x8000);
 		snd_soc_update_bits(codec, RT5659_SILENCE_CTRL, 0xfe00, 0x8800);
@@ -2972,6 +2987,17 @@ static int rt5659_sto1_filter_event(struct snd_soc_dapm_widget *w,
 		}
 		break;
 
+	case SND_SOC_DAPM_POST_PMU:
+		snd_soc_update_bits(codec, RT5659_STO_DAC_MIXER,
+			RT5659_M_DAC_L1_STO_L | RT5659_M_DAC_R1_STO_L |
+			RT5659_M_DAC_L1_STO_R | RT5659_M_DAC_R1_STO_R,
+			sto_dac_mixer);
+		snd_soc_update_bits(codec, RT5659_MONO_DAC_MIXER,
+			RT5659_M_DAC_L1_MONO_L | RT5659_M_DAC_R1_MONO_L |
+			RT5659_M_DAC_L1_MONO_R | RT5659_M_DAC_R1_MONO_R,
+			mono_dac_mixer);
+		break;
+
 	case SND_SOC_DAPM_POST_PMD:
 		snd_soc_update_bits(codec, RT5659_STO_DRE_CTRL_1, 0x8000,
 			0x0000);
@@ -2982,6 +3008,82 @@ static int rt5659_sto1_filter_event(struct snd_soc_dapm_widget *w,
 				0x0000);
 			snd_soc_update_bits(codec, RT5659_DUMMY_2, 0x3000, 0x0);
 		}
+		break;
+
+	default:
+		return 0;
+	}
+
+	return 0;
+}
+
+static int rt5659_monol_filter_event(struct snd_soc_dapm_widget *w,
+	struct snd_kcontrol *kcontrol, int event)
+{
+	struct snd_soc_codec *codec = w->codec;
+	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
+	static unsigned int sto_dac_mixer, mono_dac_mixer;
+
+	pr_debug("%s\n", __func__);
+
+	switch (event) {
+	case SND_SOC_DAPM_PRE_PMU:
+		sto_dac_mixer = snd_soc_read(codec, RT5659_STO_DAC_MIXER);
+		mono_dac_mixer = snd_soc_read(codec, RT5659_MONO_DAC_MIXER);
+
+		snd_soc_update_bits(codec, RT5659_STO_DAC_MIXER,
+			RT5659_M_DAC_L2_STO_L | RT5659_M_DAC_L2_STO_R,
+			RT5659_M_DAC_L2_STO_L | RT5659_M_DAC_L2_STO_R);
+		snd_soc_update_bits(codec, RT5659_MONO_DAC_MIXER,
+			RT5659_M_DAC_L2_MONO_L | RT5659_M_DAC_L2_MONO_R,
+			RT5659_M_DAC_L2_MONO_L | RT5659_M_DAC_L2_MONO_R);
+		break;
+
+	case SND_SOC_DAPM_POST_PMU:
+		snd_soc_update_bits(codec, RT5659_STO_DAC_MIXER,
+			RT5659_M_DAC_L2_STO_L | RT5659_M_DAC_L2_STO_R,
+			sto_dac_mixer);
+		snd_soc_update_bits(codec, RT5659_MONO_DAC_MIXER,
+			RT5659_M_DAC_L2_MONO_L | RT5659_M_DAC_L2_MONO_R,
+			mono_dac_mixer);
+		break;
+
+	default:
+		return 0;
+	}
+
+	return 0;
+}
+
+static int rt5659_monor_filter_event(struct snd_soc_dapm_widget *w,
+	struct snd_kcontrol *kcontrol, int event)
+{
+	struct snd_soc_codec *codec = w->codec;
+	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
+	static unsigned int sto_dac_mixer, mono_dac_mixer;
+
+	pr_debug("%s\n", __func__);
+
+	switch (event) {
+	case SND_SOC_DAPM_PRE_PMU:
+		sto_dac_mixer = snd_soc_read(codec, RT5659_STO_DAC_MIXER);
+		mono_dac_mixer = snd_soc_read(codec, RT5659_MONO_DAC_MIXER);
+
+		snd_soc_update_bits(codec, RT5659_STO_DAC_MIXER,
+			RT5659_M_DAC_R2_STO_L | RT5659_M_DAC_R2_STO_R,
+			RT5659_M_DAC_R2_STO_L | RT5659_M_DAC_R2_STO_R);
+		snd_soc_update_bits(codec, RT5659_MONO_DAC_MIXER,
+			RT5659_M_DAC_R2_MONO_L | RT5659_M_DAC_R2_MONO_R,
+			RT5659_M_DAC_R2_MONO_L | RT5659_M_DAC_R2_MONO_R);
+		break;
+
+	case SND_SOC_DAPM_POST_PMU:
+		snd_soc_update_bits(codec, RT5659_STO_DAC_MIXER,
+			RT5659_M_DAC_R2_STO_L | RT5659_M_DAC_R2_STO_R,
+			sto_dac_mixer);
+		snd_soc_update_bits(codec, RT5659_MONO_DAC_MIXER,
+			RT5659_M_DAC_R2_MONO_L | RT5659_M_DAC_R2_MONO_R,
+			mono_dac_mixer);
 		break;
 
 	default:
@@ -3254,11 +3356,16 @@ static const struct snd_soc_dapm_widget rt5659_dapm_widgets[] = {
 	/* DAC Mixer */
 	SND_SOC_DAPM_SUPPLY("DAC Stereo1 Filter", RT5659_PWR_DIG_2,
 		RT5659_PWR_DAC_S1F_BIT, 0, rt5659_sto1_filter_event,
-		SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
+		SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMU |
+		SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMD),
 	SND_SOC_DAPM_SUPPLY("DAC Mono Left Filter", RT5659_PWR_DIG_2,
-		RT5659_PWR_DAC_MF_L_BIT, 0, NULL, 0),
+		RT5659_PWR_DAC_MF_L_BIT, 0, rt5659_monol_filter_event,
+		SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMU |
+		SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMD),
 	SND_SOC_DAPM_SUPPLY("DAC Mono Right Filter", RT5659_PWR_DIG_2,
-		RT5659_PWR_DAC_MF_R_BIT, 0, NULL, 0),
+		RT5659_PWR_DAC_MF_R_BIT, 0, rt5659_monor_filter_event,
+		SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMU |
+		SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMD),
 	SND_SOC_DAPM_MIXER("Stereo DAC MIXL", SND_SOC_NOPM, 0, 0,
 		rt5659_sto_dac_l_mix, ARRAY_SIZE(rt5659_sto_dac_l_mix)),
 	SND_SOC_DAPM_MIXER("Stereo DAC MIXR", SND_SOC_NOPM, 0, 0,
