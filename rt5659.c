@@ -1932,6 +1932,9 @@ static int is_using_asrc(struct snd_soc_dapm_widget *w,
 		/* I2S_Pre_Div1 should be 1 in asrc mode */
 		snd_soc_update_bits(codec, RT5659_ADDA_CLK_1,
 			RT5659_I2S_PD1_MASK, RT5659_I2S_PD1_2);
+		/* Prevent I2S ASRC disable for special case */
+		snd_soc_update_bits(codec, RT5659_ASRC_1, 1 << (10 + val),
+			1 << (10 + val));
 		return 1;
 	default:
 		return 0;
