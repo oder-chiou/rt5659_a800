@@ -7,6 +7,7 @@
 	"IN2 Boost Volume" range 0 ~ 69 (-12dB ~ 39.75dB) 0.75dB per step
 	"IN3 Boost Volume" range 0 ~ 69 (-12dB ~ 39.75dB) 0.75dB per step
 	"IN4 Boost Volume" range 0 ~ 69 (-12dB ~ 39.75dB) 0.75dB per step
+	"HP Playback Volume" range 0 ~ 31 (-23.25dB ~ 0B) 0.75dB per step
 -->
 <mixer>
 	<pcmdai playback_link="4" />
@@ -14,6 +15,7 @@
 	<pcmdai capture_link="0" />
 	<pcmdai baseband_link="1" />
 	<pcmdai bluetooth_link="2" />
+	<pcmdai fmradio_link="5" />
 
 	<ctl name="DAC L1 Source" value="Stereo DAC Mixer"/>
 	<ctl name="DAC R1 Source" value="Stereo DAC Mixer"/>
@@ -37,6 +39,8 @@
 	<ctl name="Stereo1 ADC MIXR ADC2 Switch" value="0"/>
 	<ctl name="Mono ADC MIXL ADC1 Switch" value="0"/>
 	<ctl name="Mono ADC MIXR ADC1 Switch" value="0"/>
+	<ctl name="Mono ADC MIXL ADC2 Switch" value="0"/>
+	<ctl name="Mono ADC MIXR ADC2 Switch" value="0"/>
 
 	<ctl name="RECMIX1L BST1 Switch" value="0"/>
 	<ctl name="RECMIX1R BST1 Switch" value="0"/>
@@ -56,6 +60,7 @@
 
 	<ctl name="TDM Data Mux" value="AD1:AD2:DAC:NUL"/>
 	<ctl name="IF2 ADC Mux" value="IF_ADC2"/>
+	<ctl name="IF3 ADC Mux" value="Stereo2_ADC_L/R"/>
 
 	<ctl name="AD MONOL Clk Sel" value="clk_sysy_div_out"/>
 	<ctl name="AD MONOR Clk Sel" value="clk_sysy_div_out"/>
@@ -102,14 +107,18 @@
 
 		<path name="media-speaker">
 			<ctl name="Mono DAC MIXL DAC L1 Switch" value="1"/>
-			<ctl name="Mono DAC MIXL DAC R1 Switch" value="1"/>
+			<ctl name="Mono DAC MIXR DAC R1 Switch" value="1"/>
 			<ctl name="Mono ADC L1 Mux" value="Mono DAC MIXL"/>
+			<ctl name="Mono ADC R1 Mux" value="Mono DAC MIXR"/>
 			<ctl name="Mono ADC MIXL ADC1 Switch" value="1"/>
+			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
 			<ctl name="AD MONOL Clk Sel" value="clk_i2s3_track"/>
+			<ctl name="AD MONOR Clk Sel" value="clk_i2s3_track"/>
 			<ctl name="IF3 ADC Mux" value="IF_ADC2"/>
 		</path>
 
 		<path name="media-headset">
+			<ctl name="HP Playback Volume" value="31"/>
 			<ctl name="Stereo DAC MIXL DAC L1 Switch" value="1"/>
 			<ctl name="Stereo DAC MIXR DAC R1 Switch" value="1"/>
 			<ctl name="HPO L Playback Switch" value="1"/>
@@ -124,14 +133,11 @@
 
 		<path name="media-bt-sco-headset">
 			<ctl name="Mono DAC MIXL DAC L1 Switch" value="1"/>
-			<ctl name="Mono DAC MIXR DAC R1 Switch" value="1"/>
+			<ctl name="Mono DAC MIXL DAC R1 Switch" value="1"/>
 			<ctl name="Mono ADC L1 Mux" value="Mono DAC MIXL"/>
-			<ctl name="Mono ADC R1 Mux" value="Mono DAC MIXR"/>
 			<ctl name="Mono ADC MIXL ADC1 Switch" value="1"/>
-			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
-			<ctl name="IF3 ADC Mux" value="IF_ADC2"/>
 			<ctl name="AD MONOL Clk Sel" value="clk_i2s3_track"/>
-			<ctl name="AD MONOR Clk Sel" value="clk_i2s3_track"/>
+			<ctl name="IF3 ADC Mux" value="IF_ADC2"/>
 		</path>
 
 		<path name="media-speaker-bt-sco-headset">
@@ -322,10 +328,11 @@
 			<ctl name="Mono ADC MIXR ADC2 Switch" value="1"/>
 			<ctl name="TDM Data Mux" value="AD2:AD1:DAC:NUL"/>
 			<ctl name="ADC IF1 2/3 Data Switch" value="R/R"/>
-			<path name="media-speaker" />
+			<path name="media-bt-sco-headset" />
 		</path>
 
 		<path name="incall_nb-headset">
+			<ctl name="HP Playback Volume" value="31"/>
 			<ctl name="DA MONOL Clk Sel" value="clk_i2s2_track"/>
 			<ctl name="DAC L2 Mux" value="IF2 DAC"/>
 			<ctl name="Stereo DAC MIXL DAC L2 Switch" value="1"/>
@@ -383,6 +390,10 @@
 		<!-- NB/EXTRA_VOL -->
 		<path name="incall_nb_extra_vol-speaker">
 			<path name="incall_nb-speaker" />
+		</path>
+
+		<path name="incall_nb_extra_vol-handset">
+			<path name="incall_nb-handset" />
 		</path>
 
 		<!-- NB/EXTRA_VOL/HANDOVER -->
@@ -599,10 +610,13 @@
 			<ctl name="DA MONOL Clk Sel" value="clk_i2s3_track"/>
 			<ctl name="DA MONOR Clk Sel" value="clk_i2s3_track"/>
 			<ctl name="Mono DAC MIXL DAC L2 Switch" value="1"/>
-			<ctl name="Mono DAC MIXL DAC R2 Switch" value="1"/>
+			<ctl name="Mono DAC MIXR DAC R2 Switch" value="1"/>
 			<ctl name="Mono ADC L1 Mux" value="Mono DAC MIXL"/>
+			<ctl name="Mono ADC R1 Mux" value="Mono DAC MIXR"/>
 			<ctl name="Mono ADC MIXL ADC1 Switch" value="1"/>
+			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
 			<ctl name="AD MONOL Clk Sel" value="clk_i2s3_track"/>
+			<ctl name="AD MONOR Clk Sel" value="clk_i2s3_track"/>
 			<ctl name="IF3 ADC Mux" value="IF_ADC2"/>
 			<!-- Record -->
 			<ctl name="Stereo DAC MIXL DAC L2 Switch" value="1"/>
@@ -616,6 +630,7 @@
 		</path>
 
 		<path name="fm_radio-headset">
+			<ctl name="HP Playback Volume" value="31"/>
 			<ctl name="DAC L2 Mux" value="IF3 DAC"/>
 			<ctl name="DAC R2 Mux" value="IF3 DAC"/>
 			<ctl name="DA MONOL Clk Sel" value="clk_i2s3_track"/>
@@ -628,10 +643,10 @@
 			<!-- Record -->
 			<ctl name="Mono DAC MIXL DAC L2 Switch" value="1"/>
 			<ctl name="Mono DAC MIXR DAC R2 Switch" value="1"/>
-			<ctl name="Mono ADC L2 Mux" value="Mono DAC MIXL"/>
-			<ctl name="Mono ADC R2 Mux" value="Mono DAC MIXR"/>
-			<ctl name="Mono ADC MIXL ADC2 Switch" value="1"/>
-			<ctl name="Mono ADC MIXR ADC2 Switch" value="1"/>
+			<ctl name="Mono ADC L1 Mux" value="Mono DAC MIXL"/>
+			<ctl name="Mono ADC R1 Mux" value="Mono DAC MIXR"/>
+			<ctl name="Mono ADC MIXL ADC1 Switch" value="1"/>
+			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
 			<ctl name="TDM Data Mux" value="AD2:AD1:DAC:NUL"/>
 			<ctl name="ADC IF1 2/3 Data Switch" value="L/R"/>
 			<path name="media-headset" />
@@ -1237,7 +1252,15 @@
 		</path>
 
 		<path name="loopback_packet-2nd-mic">
-			<path name="loopback_packet-mic" />
+			<ctl name="AD STO1 Clk Sel" value="clk_i2s2_track"/>
+			<ctl name="RECMIX1L BST3 Switch" value="1"/>
+			<ctl name="RECMIX1R BST3 Switch" value="1"/>
+			<ctl name="Stereo1 ADC Source" value="ADC1"/>
+			<ctl name="Stereo1 ADC1 Source" value="ADC"/>
+			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="1"/>
+			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1" />
+			<ctl name="IF2 ADC Mux" value="IF_ADC1"/>
 		</path>
 
 		<path name="loopback_packet-headset-mic">
@@ -2125,28 +2148,29 @@
 
 		<!-- VoLTE VT CP NB input volume -->
 		<path name="gain-volte_vt_cp_nb-handset-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-volte_vt_cp_nb-speaker-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
-			<ctl name="IN3 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="32"/>
+			<ctl name="IN3 Boost Volume" value="32"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-volte_vt_cp_nb-headset-mic">
-			<ctl name="IN1 Boost Volume" value="64"/>
+			<ctl name="IN1 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-volte_vt_cp_nb-headphone-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
-			<ctl name="IN3 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
@@ -2159,28 +2183,29 @@
 
 		<!-- VoLTE CP NB input volume -->
 		<path name="gain-volte_cp_nb-handset-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-volte_cp_nb-speaker-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
-			<ctl name="IN3 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="32"/>
+			<ctl name="IN3 Boost Volume" value="32"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-volte_cp_nb-headset-mic">
-			<ctl name="IN1 Boost Volume" value="64"/>
+			<ctl name="IN1 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-volte_cp_nb-headphone-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
-			<ctl name="IN3 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
@@ -2193,7 +2218,8 @@
 
 		<!-- VoLTE CP NB/HANDOVER input volume -->
 		<path name="gain-volte_cp_nb_handover-handset-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
@@ -2212,7 +2238,8 @@
 
 		<!-- VoLTE VT CP NB/EXTRA_VOL input volume -->
 		<path name="gain-volte_cp_nb_extra_vol-handset-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
@@ -2224,7 +2251,8 @@
 
 		<!-- VoLTE VT CP NB/EXTRA_VOL/HANDOVER input volume -->
 		<path name="gain-volte_cp_nb_extra_vol_handover-handset-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
@@ -2236,28 +2264,29 @@
 
 		<!-- VoLTE CP WB input volume -->
 		<path name="gain-volte_cp_wb-handset-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-volte_cp_wb-speaker-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
-			<ctl name="IN3 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="32"/>
+			<ctl name="IN3 Boost Volume" value="32"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-volte_cp_wb-headset-mic">
-			<ctl name="IN1 Boost Volume" value="64"/>
+			<ctl name="IN1 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-volte_cp_wb-headphone-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
-			<ctl name="IN3 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
@@ -2270,42 +2299,44 @@
 
 		<!-- VoLTE CP WB/EXTRA_VOL input volume -->
 		<path name="gain-volte_cp_wb_extra_vol-handset-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-volte_cp_wb_extra_vol-speaker-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
-			<ctl name="IN3 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="32"/>
+			<ctl name="IN3 Boost Volume" value="32"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<!-- VoLTE VT CP WB input volume -->
 		<path name="gain-volte_vt_cp_wb-handset-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-volte_vt_cp_wb-speaker-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
-			<ctl name="IN3 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="32"/>
+			<ctl name="IN3 Boost Volume" value="32"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-volte_vt_cp_wb-headset-mic">
-			<ctl name="IN1 Boost Volume" value="64"/>
+			<ctl name="IN1 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-volte_vt_cp_wb-headphone-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
-			<ctl name="IN3 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
@@ -2319,28 +2350,29 @@
 		<!-- CP Call Input volume -->
 		<!-- NB volume -->
 		<path name="gain-incall_nb-handset-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-incall_nb-speaker-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
-			<ctl name="IN3 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="32"/>
+			<ctl name="IN3 Boost Volume" value="32"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-incall_nb-headset-mic">
-			<ctl name="IN1 Boost Volume" value="64"/>
+			<ctl name="IN1 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-incall_nb-headphone-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
-			<ctl name="IN3 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
@@ -2353,7 +2385,8 @@
 
 		<!-- NB/HANDOVER volume -->
 		<path name="gain-incall_nb_handover-handset-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
@@ -2373,56 +2406,59 @@
 
 		<!-- NB/EXTRA_VOL volume -->
 		<path name="gain-incall_nb_extra_vol-handset-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-incall_nb_extra_vol-speaker-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
-			<ctl name="IN3 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="32"/>
+			<ctl name="IN3 Boost Volume" value="32"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<!-- NB/EXTRA_VOL/HANDOVER volume -->
 		<path name="gain-incall_nb_extra_vol_handover-handset-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-incall_nb_extra_vol_handover-speaker-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
-			<ctl name="IN3 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="32"/>
+			<ctl name="IN3 Boost Volume" value="32"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<!-- WB volume -->
 		<path name="gain-incall_wb-handset-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-incall_wb-speaker-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
-			<ctl name="IN3 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="32"/>
+			<ctl name="IN3 Boost Volume" value="32"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-incall_wb-headset-mic">
-			<ctl name="IN1 Boost Volume" value="64"/>
+			<ctl name="IN1 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-incall_wb-headphone-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
-			<ctl name="IN3 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
@@ -2435,15 +2471,16 @@
 
 		<!-- WB/EXTRA_VOL volume -->
 		<path name="gain-incall_wb_extra_vol-handset-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="44"/>
+			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-incall_wb_extra_vol-speaker-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
-			<ctl name="IN3 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="32"/>
+			<ctl name="IN3 Boost Volume" value="32"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
