@@ -304,6 +304,7 @@
 			<ctl name="Stereo1 ADC2 Source" value="DAC MIX"/>
 			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="1"/>
 			<ctl name="Stereo1 ADC MIXR ADC2 Switch" value="1"/>
+			<path name="media-handset" />
 		</path>
 
 		<path name="incall_nb-speaker">
@@ -321,6 +322,7 @@
 			<ctl name="Mono ADC MIXR ADC2 Switch" value="1"/>
 			<ctl name="TDM Data Mux" value="AD2:AD1:DAC:NUL"/>
 			<ctl name="ADC IF1 2/3 Data Switch" value="R/R"/>
+			<path name="media-speaker" />
 		</path>
 
 		<path name="incall_nb-headset">
@@ -339,6 +341,7 @@
 			<ctl name="Stereo1 ADC2 Source" value="DAC MIX"/>
 			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="1"/>
 			<ctl name="Stereo1 ADC MIXR ADC2 Switch" value="1"/>
+			<path name="media-headset" />
 		</path>
 
 		<path name="incall_nb-headphone">
@@ -357,6 +360,7 @@
 			<!-- Record -->
 			<ctl name="Stereo DAC MIXL DAC L2 Switch" value="1"/>
 			<ctl name="Stereo DAC MIXR DAC L2 Switch" value="1"/>
+			<path name="media-bt-sco-headset" />
 		</path>
 
 		<!-- NB handover -->
@@ -608,6 +612,7 @@
 			<ctl name="Stereo1 ADC2 Source" value="DAC MIX"/>
 			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="1"/>
 			<ctl name="Stereo1 ADC MIXR ADC2 Switch" value="1"/>
+			<path name="media-speaker" />
 		</path>
 
 		<path name="fm_radio-headset">
@@ -629,6 +634,7 @@
 			<ctl name="Mono ADC MIXR ADC2 Switch" value="1"/>
 			<ctl name="TDM Data Mux" value="AD2:AD1:DAC:NUL"/>
 			<ctl name="ADC IF1 2/3 Data Switch" value="L/R"/>
+			<path name="media-headset" />
 		</path>
 
 		<path name="samsung-sidesync">
