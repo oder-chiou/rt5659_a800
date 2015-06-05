@@ -2749,6 +2749,30 @@ static int rt5659_spk_event(struct snd_soc_dapm_widget *w,
 
 }
 
+static int rt5659_mono_vref_event(struct snd_soc_dapm_widget *w,
+	struct snd_kcontrol *kcontrol, int event)
+{
+	struct snd_soc_codec *codec = w->codec;
+
+	pr_debug("%s\n", __func__);
+
+	switch (event) {
+	case SND_SOC_DAPM_POST_PMU:
+		snd_soc_update_bits(codec, RT5659_PWR_ANLG_1, RT5659_PWR_FV3,
+			0);
+		msleep(20);
+		snd_soc_update_bits(codec, RT5659_PWR_ANLG_1, RT5659_PWR_FV3,
+			RT5659_PWR_FV3);
+		break;
+
+	default:
+		return 0;
+	}
+
+	return 0;
+
+}
+
 static int rt5659_mono_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
@@ -2974,7 +2998,6 @@ static int rt5659_sto1_filter_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = w->codec;
-	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
 	static unsigned int sto_dac_mixer, mono_dac_mixer;
 
 	pr_debug("%s\n", __func__);
@@ -3041,7 +3064,6 @@ static int rt5659_monol_filter_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = w->codec;
-	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
 	static unsigned int sto_dac_mixer, mono_dac_mixer;
 
 	pr_debug("%s\n", __func__);
@@ -3121,7 +3143,8 @@ static const struct snd_soc_dapm_widget rt5659_dapm_widgets[] = {
 	SND_SOC_DAPM_SUPPLY("Mic Det Power", RT5659_PWR_VOL,
 		RT5659_PWR_MIC_DET_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("Mono Vref", RT5659_PWR_ANLG_1,
-		RT5659_PWR_VREF3_BIT, 0, NULL, 0),
+		RT5659_PWR_VREF3_BIT, 0, rt5659_mono_vref_event,
+		SND_SOC_DAPM_POST_PMU),
 
 	/* ASRC */
 	SND_SOC_DAPM_SUPPLY_S("I2S1 ASRC", 1, RT5659_ASRC_1,
