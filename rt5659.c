@@ -1354,6 +1354,22 @@ static int rt5659_clk_sel_put(struct snd_kcontrol *kcontrol,
 	return snd_soc_put_value_enum_double(kcontrol, ucontrol);
 }
 
+static int rt5659_hp_vol_put(struct snd_kcontrol *kcontrol,
+		struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
+	int ret = snd_soc_put_volsw(kcontrol, ucontrol);
+
+	if (snd_soc_read(codec, RT5659_STO_DRE_CTRL_1) & 0x8000) {
+		snd_soc_update_bits(codec, RT5659_STO_DRE_CTRL_1, 0x8000,
+			0x0000);
+		snd_soc_update_bits(codec, RT5659_STO_DRE_CTRL_1, 0x8000,
+			0x8000);
+	}
+
+	return ret;
+}
+
 static void rt5659_enable_push_button_irq(struct snd_soc_codec *codec,
 	bool enable)
 {
@@ -1681,8 +1697,9 @@ static const struct snd_kcontrol_new rt5659_snd_controls[] = {
 		RT5659_L_VOL_SFT, RT5659_R_VOL_SFT, 39, 1, out_vol_tlv),
 
 	/* Headphone Output Volume */
-	SOC_DOUBLE_R_TLV("HP Playback Volume", RT5659_HPL_GAIN, RT5659_HPR_GAIN,
-		RT5659_G_HP_SFT, 31, 1, hp_vol_tlv),
+	SOC_DOUBLE_R_EXT_TLV("HP Playback Volume", RT5659_HPL_GAIN,
+		RT5659_HPR_GAIN, RT5659_G_HP_SFT, 31, 1, snd_soc_get_volsw,
+		rt5659_hp_vol_put, hp_vol_tlv),
 
 	/* Mono Output Volume */
 	SOC_SINGLE_TLV("Mono Playback Volume", RT5659_MONO_OUT,
