@@ -2612,5 +2612,13 @@
 			<ctl name="DAC2 Playback Volume" value="175"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
+		
+		<path name="gain-fm_radio-speaker">
+			<ctl name="DAC2 Playback Volume" value="175"/>
+		</path>
+
+		<path name="gain-fm_radio-headset">
+			<ctl name="DAC2 Playback Volume" value="175"/>
+		</path>
 </mixer>
 
