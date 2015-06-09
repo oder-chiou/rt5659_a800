@@ -1532,6 +1532,13 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 	snd_soc_dapm_disable_pin(&codec->dapm, "Mic Det Power");
 	snd_soc_dapm_sync(&codec->dapm);
 
+	if (codec->dapm.bias_level == SND_SOC_BIAS_OFF) {
+		regmap_update_bits(rt5659->regmap, RT5659_PWR_VOL,
+			RT5659_PWR_MIC_DET, 0);
+		regmap_update_bits(rt5659->regmap, RT5659_PWR_ANLG_2,
+			RT5659_PWR_MB1,	0);
+	}
+
 	snd_soc_update_bits(codec, RT5659_IRQ_CTRL_2, 0x8, 0x0);
 	snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_2, 0x8000, 0x0);
 
