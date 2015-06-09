@@ -4989,7 +4989,7 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 
 	rt5659_calibrate(rt5659);
 
-	pr_debug("%s: dmic1_data_pin = %d, dmic2_data_pin =%d",	__func__,
+	pr_debug("%s: dmic1_data_pin = %d, dmic2_data_pin =%d\n", __func__,
 		rt5659->pdata.dmic1_data_pin, rt5659->pdata.dmic2_data_pin);
 
 	/* line in diff mode*/
