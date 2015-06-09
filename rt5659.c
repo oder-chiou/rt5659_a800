@@ -2998,6 +2998,7 @@ static int rt5659_sto1_filter_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = w->codec;
+	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
 	static unsigned int sto_dac_mixer, mono_dac_mixer;
 
 	pr_debug("%s\n", __func__);
@@ -3101,7 +3102,6 @@ static int rt5659_monor_filter_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = w->codec;
-	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
 	static unsigned int sto_dac_mixer, mono_dac_mixer;
 
 	pr_debug("%s\n", __func__);
@@ -4353,7 +4353,7 @@ static ssize_t rt5659_codec_show(struct device *dev,
 		cnt += snprintf(buf + cnt, RT5659_REG_DISP_LEN,
 				 "%04x: %04x\n", i, val);
 	}
-	
+
 	if (cnt >= PAGE_SIZE)
 		cnt = PAGE_SIZE - 1;
 
