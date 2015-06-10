@@ -3027,15 +3027,20 @@ static int rt5659_sto1_filter_event(struct snd_soc_dapm_widget *w,
 			RT5659_M_DAC_L1_MONO_L | RT5659_M_DAC_R1_MONO_L |
 			RT5659_M_DAC_L1_MONO_R | RT5659_M_DAC_R1_MONO_R);
 
-		snd_soc_update_bits(codec, RT5659_STO_DRE_CTRL_1, 0x8000,
-			0x8000);
-		snd_soc_update_bits(codec, RT5659_SILENCE_CTRL, 0xfe00, 0x8800);
-		snd_soc_update_bits(codec, RT5659_DIG_MISC, 0x0080, 0x0080);
-		if (rt5659->v_id >= 0x3) {
-			snd_soc_update_bits(codec, RT5659_MICBIAS_2, 0x0100,
-				0x0100);
-			snd_soc_update_bits(codec, RT5659_DUMMY_2, 0x3000,
-				0x3000);
+		if (!(snd_soc_read(codec, RT5659_PWR_DIG_2) &
+			RT5659_PWR_DAC_MF_L)) {
+			snd_soc_update_bits(codec, RT5659_STO_DRE_CTRL_1,
+				0x8000, 0x8000);
+			snd_soc_update_bits(codec, RT5659_SILENCE_CTRL, 0xfe00,
+				0x8800);
+			snd_soc_update_bits(codec, RT5659_DIG_MISC, 0x0080,
+				0x0080);
+			if (rt5659->v_id >= 0x3) {
+				snd_soc_update_bits(codec, RT5659_MICBIAS_2,
+					0x0100, 0x0100);
+				snd_soc_update_bits(codec, RT5659_DUMMY_2,
+					0x3000, 0x3000);
+			}
 		}
 		break;
 
@@ -3088,6 +3093,16 @@ static int rt5659_monol_filter_event(struct snd_soc_dapm_widget *w,
 		snd_soc_update_bits(codec, RT5659_MONO_DAC_MIXER,
 			RT5659_M_DAC_L2_MONO_L | RT5659_M_DAC_L2_MONO_R,
 			RT5659_M_DAC_L2_MONO_L | RT5659_M_DAC_L2_MONO_R);
+
+		snd_soc_update_bits(codec, RT5659_STO_DRE_CTRL_1, 0x8000,
+			0x0000);
+		snd_soc_update_bits(codec, RT5659_SILENCE_CTRL, 0x8000, 0x0000);
+		snd_soc_update_bits(codec, RT5659_DIG_MISC, 0x0080, 0x0000);
+		if (rt5659->v_id >= 0x3) {
+			snd_soc_update_bits(codec, RT5659_MICBIAS_2, 0x0100,
+				0x0000);
+			snd_soc_update_bits(codec, RT5659_DUMMY_2, 0x3000, 0x0);
+		}
 		break;
 
 	case SND_SOC_DAPM_POST_PMU:
