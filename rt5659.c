@@ -2797,6 +2797,7 @@ static int rt5659_mono_event(struct snd_soc_dapm_widget *w,
 		break;
 
 	case SND_SOC_DAPM_POST_PMD:
+		snd_soc_update_bits(codec, RT5659_MONO_DRE_CTRL_1, 0x8000, 0x0);
 		snd_soc_write(codec, RT5659_MONO_AMP_CALIB_CTRL_1, 0x1e04);
 		break;
 
