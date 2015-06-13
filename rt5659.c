@@ -1506,9 +1506,10 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 #ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
 		rt5659_dynamic_control_micbias(MIC_BIAS_V2P70V);
 #endif
-		snd_soc_dapm_force_enable_pin(&codec->dapm, "MICBIAS1");
-		snd_soc_dapm_sync(&codec->dapm);
-
+		if (codec->card->instantiated) {
+			snd_soc_dapm_force_enable_pin(&codec->dapm, "MICBIAS1");
+			snd_soc_dapm_sync(&codec->dapm);
+		}
 		regmap_update_bits(rt5659->regmap, RT5659_PWR_ANLG_1, 0xa200,
 			0xa200);
 		regmap_update_bits(rt5659->regmap, RT5659_PWR_ANLG_2, 0x0801,
@@ -1522,8 +1523,10 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 #ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
 			rt5659_dynamic_control_micbias(rt5659->pdata.dynamic_micb_ctrl_voltage);
 #endif
-			snd_soc_dapm_force_enable_pin(&codec->dapm, "Mic Det Power");
-			snd_soc_dapm_sync(&codec->dapm);
+			if (codec->card->instantiated) {
+				snd_soc_dapm_force_enable_pin(&codec->dapm, "Mic Det Power");
+				snd_soc_dapm_sync(&codec->dapm);
+			}
 
 			snd_soc_update_bits(codec, RT5659_PWR_VOL,
 				RT5659_PWR_MIC_DET, RT5659_PWR_MIC_DET);
@@ -1534,16 +1537,18 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 
 			return 1;
 		}
-
-		snd_soc_dapm_disable_pin(&codec->dapm, "MICBIAS1");
-		snd_soc_dapm_sync(&codec->dapm);
+		if (codec->card->instantiated) {
+			snd_soc_dapm_disable_pin(&codec->dapm, "MICBIAS1");
+			snd_soc_dapm_sync(&codec->dapm);
+		}
 
 		return 2;
 	}
-
-	snd_soc_dapm_disable_pin(&codec->dapm, "MICBIAS1");
-	snd_soc_dapm_disable_pin(&codec->dapm, "Mic Det Power");
-	snd_soc_dapm_sync(&codec->dapm);
+	if (codec->card->instantiated) {
+		snd_soc_dapm_disable_pin(&codec->dapm, "MICBIAS1");
+		snd_soc_dapm_disable_pin(&codec->dapm, "Mic Det Power");
+		snd_soc_dapm_sync(&codec->dapm);
+	}
 
 	if (codec->dapm.bias_level == SND_SOC_BIAS_OFF) {
 		regmap_update_bits(rt5659->regmap, RT5659_PWR_VOL,
