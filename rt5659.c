@@ -27,14 +27,21 @@
 #include <sound/initval.h>
 #include <sound/tlv.h>
 #include <sound/rt5659.h>
+#include <linux/regulator/consumer.h>
 
 #include "rt5659.h"
+
+#ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
+static struct snd_soc_codec *registered_codec;
+#endif
 
 /* Delay(ms) after powering on DMIC for avoiding pop */
 static int dmic_power_delay = 450;
 module_param(dmic_power_delay, int, 0644);
 
 #define VERSION "0.4 alsa 1.0.25"
+#define VDD_CODEC_1P8 "vdd_codec_1p8_ap"
+#define VDD_CODEC_3P3 "vdd_codec_3p3_ap"
 
 static struct reg_default init_list[] = {
 	{RT5659_IN1_IN2,		0x4000}, /*Set BST1 to 36dB*/
@@ -1496,6 +1503,9 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 	int value;
 
 	if (action) {
+#ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
+		rt5659_dynamic_control_micbias(MIC_BIAS_V2P70V);
+#endif
 		snd_soc_dapm_force_enable_pin(&codec->dapm, "MICBIAS1");
 		snd_soc_dapm_sync(&codec->dapm);
 
@@ -1509,6 +1519,9 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 		regmap_read(rt5659->regmap, RT5659_GPIO_STA, &value);
 		regmap_write(rt5659->regmap, RT5659_RC_CLK_CTRL, 0x9000);
 		if (value & 0x4) {
+#ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
+			rt5659_dynamic_control_micbias(rt5659->pdata.dynamic_micb_ctrl_voltage);
+#endif
 			snd_soc_dapm_force_enable_pin(&codec->dapm, "Mic Det Power");
 			snd_soc_dapm_sync(&codec->dapm);
 
@@ -4577,6 +4590,22 @@ static int rt5659_set_bias_level(struct snd_soc_codec *codec,
 	return 0;
 }
 
+#ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
+void rt5659_dynamic_control_micbias(int micb_out_val)
+{
+	switch (micb_out_val) {
+	case MIC_BIAS_V2P70V ... MIC_BIAS_V1P80V:
+		snd_soc_update_bits(registered_codec, RT5659_MICBIAS_1,
+						RT5659_MICBIAS1_VOLTAGE_MASK,
+						micb_out_val << RT5659_MICBIAS1_VOLTAGE_SFT);
+		pr_info("%s: Micbias value: %d\n", __func__, micb_out_val);
+		break;
+	default:
+		pr_err("%s: Invalid micbias voltage!!\n", __func__);
+	}
+}
+#endif
+
 static int rt5659_reg_init(struct snd_soc_codec *codec)
 {
 	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
@@ -4596,6 +4625,9 @@ static int rt5659_probe(struct snd_soc_codec *codec)
 	pr_debug("%s\n", __func__);
 
 	rt5659->codec = codec;
+#ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
+	registered_codec = codec;
+#endif
 
 	rt5659_reg_init(codec);
 	rt5659_set_bias_level(codec, SND_SOC_BIAS_OFF);
@@ -4757,6 +4789,9 @@ MODULE_DEVICE_TABLE(i2c, rt5659_i2c_id);
 
 static int rt5659_parse_dt(struct rt5659_priv *rt5659, struct device_node *np)
 {
+#ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
+	int ret = 0;
+#endif
 	rt5659->pdata.in1_diff = of_property_read_bool(np,
 					"realtek,in1-differential");
 	rt5659->pdata.in3_diff = of_property_read_bool(np,
@@ -4771,6 +4806,17 @@ static int rt5659_parse_dt(struct rt5659_priv *rt5659, struct device_node *np)
 
 	of_property_read_u32(np, "realtek,push_button_range_def",
 		&rt5659->pdata.push_button_range_def);
+
+#ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
+	ret = of_property_read_u32(np, "dynamic-micbias-ctrl-voltage",
+			&rt5659->pdata.dynamic_micb_ctrl_voltage);
+	if (ret < 0) {
+		pr_err("%s : cannot find dynamic-micbias-ctrl-voltage in the dt - using default voltage (2.7V)\n",
+		__func__);
+		rt5659->pdata.dynamic_micb_ctrl_voltage = MIC_BIAS_V2P70V;
+	}
+	pr_info("%s - dynamic-micbias-ctrl-voltage: %d \n", __func__, rt5659->pdata.dynamic_micb_ctrl_voltage);
+#endif
 
 	return 0;
 }
@@ -4964,6 +5010,24 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 	struct rt5659_priv *rt5659;
 	int ret;
 	unsigned int val;
+	struct regulator *regulator1_8, *regulator3_3;
+
+	regulator1_8 = regulator_get(NULL, VDD_CODEC_1P8);
+	regulator3_3 = regulator_get(NULL, VDD_CODEC_3P3);
+
+	ret=regulator_enable(regulator1_8);
+	if (ret)
+		printk("=%s== regulator1_8 : regulator enable fail!! ==\n",__func__);
+	else
+		printk("=%s== regulator1_8 : regulator enabled ==\n",__func__);
+
+	ret=regulator_enable(regulator3_3);
+	if (ret)
+		printk("=%s== regulator3_3 : regulator enable fail!! ==\n",__func__);
+	else
+		printk("=%s== regulator3_3 : regulator enabled ==\n",__func__);
+
+	msleep(300);
 
 	pr_info("Codec driver version %s\n", VERSION);
 
