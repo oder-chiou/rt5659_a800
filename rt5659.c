@@ -3443,8 +3443,8 @@ static const struct snd_soc_dapm_widget rt5659_dapm_widgets[] = {
 		RT5659_PWR_DAC_S1F_BIT, 0, rt5659_sto1_filter_event,
 		SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMU |
 		SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMD),
-	SND_SOC_DAPM_SUPPLY("DAC Mono Left Filter", RT5659_PWR_DIG_2,
-		RT5659_PWR_DAC_MF_L_BIT, 0, rt5659_monol_filter_event,
+	SND_SOC_DAPM_SUPPLY("DAC Mono Left Filter", SND_SOC_NOPM,
+		0, 0, rt5659_monol_filter_event,
 		SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMU |
 		SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMD),
 	SND_SOC_DAPM_SUPPLY("DAC Mono Right Filter", RT5659_PWR_DIG_2,
@@ -4636,6 +4636,8 @@ static int rt5659_probe(struct snd_soc_codec *codec)
 
 	rt5659_reg_init(codec);
 	rt5659_set_bias_level(codec, SND_SOC_BIAS_OFF);
+	regmap_update_bits(rt5659->regmap, RT5659_PWR_DIG_2,
+		RT5659_PWR_DAC_MF_L, RT5659_PWR_DAC_MF_L);
 
 	ret = device_create_file(codec->dev, &dev_attr_codec_reg);
 	if (ret != 0) {
@@ -4668,11 +4670,15 @@ static int rt5659_remove(struct snd_soc_codec *codec)
 #ifdef CONFIG_PM
 static int rt5659_suspend(struct snd_soc_codec *codec)
 {
+	snd_soc_update_bits(codec, RT5659_PWR_DIG_2,
+		RT5659_PWR_DAC_MF_L, 0);
 	return 0;
 }
 
 static int rt5659_resume(struct snd_soc_codec *codec)
 {
+	snd_soc_update_bits(codec, RT5659_PWR_DIG_2,
+		RT5659_PWR_DAC_MF_L, RT5659_PWR_DAC_MF_L);
 	return 0;
 }
 #else
