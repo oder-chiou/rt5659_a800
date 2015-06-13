@@ -38,6 +38,8 @@ static struct snd_soc_codec *registered_codec;
 /* Delay(ms) after powering on DMIC for avoiding pop */
 static int dmic_power_delay = 450;
 module_param(dmic_power_delay, int, 0644);
+static int adc_power_delay = 200;
+module_param(adc_power_delay, int, 0644);
 
 #define VERSION "0.4 alsa 1.0.25"
 #define VDD_CODEC_1P8 "vdd_codec_1p8_ap"
@@ -3177,6 +3179,24 @@ static int rt5659_monor_filter_event(struct snd_soc_dapm_widget *w,
 	return 0;
 }
 
+static int rt5659_adc_depop_event(struct snd_soc_dapm_widget *w,
+	struct snd_kcontrol *kcontrol, int event)
+{
+
+	pr_debug("%s\n", __func__);
+
+	switch (event) {
+	case SND_SOC_DAPM_PRE_PMU:
+		msleep(adc_power_delay);
+		break;
+
+	default:
+		return 0;
+	}
+
+	return 0;
+}
+
 static const struct snd_soc_dapm_widget rt5659_dapm_widgets[] = {
 	SND_SOC_DAPM_SUPPLY("LDO2", RT5659_PWR_ANLG_3, RT5659_PWR_LDO2_BIT, 0,
 		NULL, 0),
@@ -3360,9 +3380,9 @@ static const struct snd_soc_dapm_widget rt5659_dapm_widgets[] = {
 	SND_SOC_DAPM_PGA("Stereo2 ADC LR", SND_SOC_NOPM, 0, 0, NULL, 0),
 
 	SND_SOC_DAPM_PGA_S("Stereo1 ADC Volume L", 1, RT5659_STO1_ADC_DIG_VOL,
-		RT5659_L_MUTE_SFT, 1, NULL, 0),
+		RT5659_L_MUTE_SFT, 1, rt5659_adc_depop_event, SND_SOC_DAPM_PRE_PMU),
 	SND_SOC_DAPM_PGA_S("Stereo1 ADC Volume R", 1, RT5659_STO1_ADC_DIG_VOL,
-		RT5659_R_MUTE_SFT, 1, NULL, 0),
+		RT5659_R_MUTE_SFT, 1, rt5659_adc_depop_event, SND_SOC_DAPM_PRE_PMU),
 
 	SND_SOC_DAPM_PGA_S("Mono ADC Volume L", 1, RT5659_MONO_ADC_DIG_VOL,
 		RT5659_L_MUTE_SFT, 1, NULL, 0),
