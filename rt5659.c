@@ -1534,7 +1534,12 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 				RT5659_PWR_MIC_DET, RT5659_PWR_MIC_DET);
 
 			snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_2, 0x8000, 0x8000);
-			snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_1, 0xfff0, 0xfff0);
+			while (true) {
+				snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_1, 0xfff0, 0xfff0);
+				regmap_read(rt5659->regmap, RT5659_4BTN_IL_CMD_1, &value);
+				if (!(value & 0xfff0))
+					break;
+			}
 			snd_soc_update_bits(codec, RT5659_IRQ_CTRL_2, 0x8, 0x8);
 
 			return 1;
@@ -1556,7 +1561,7 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 		regmap_update_bits(rt5659->regmap, RT5659_PWR_VOL,
 			RT5659_PWR_MIC_DET, 0);
 		regmap_update_bits(rt5659->regmap, RT5659_PWR_ANLG_2,
-			RT5659_PWR_MB1,	0);
+			RT5659_PWR_MB1, 0);
 	}
 
 	snd_soc_update_bits(codec, RT5659_IRQ_CTRL_2, 0x8, 0x0);
