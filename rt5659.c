@@ -1566,6 +1566,7 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 
 	snd_soc_update_bits(codec, RT5659_IRQ_CTRL_2, 0x8, 0x0);
 	snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_2, 0x8000, 0x0);
+	snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_1, 0xfff0, 0xfff0);
 
 	return 0;
 }
