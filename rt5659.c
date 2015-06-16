@@ -2982,19 +2982,28 @@ static int rt5659_i2s_event(struct snd_soc_dapm_widget *w,
 	case SND_SOC_DAPM_PRE_PMU:
 		switch (w->shift) {
 		case RT5659_PWR_I2S1_BIT:
-			if (rt5659->master[RT5659_AIF1])
+			if (rt5659->master[RT5659_AIF1]) {
+				cancel_delayed_work_sync(
+					&rt5659->i2s_switch_slave_work[RT5659_AIF1]);
 				snd_soc_update_bits(codec, RT5659_I2S1_SDP,
 					RT5659_I2S_MS_MASK, RT5659_I2S_MS_M);
+			}
 			break;
 		case RT5659_PWR_I2S2_BIT:
-			if (rt5659->master[RT5659_AIF2])
+			if (rt5659->master[RT5659_AIF2]) {
+				cancel_delayed_work_sync(
+					&rt5659->i2s_switch_slave_work[RT5659_AIF2]);
 				snd_soc_update_bits(codec, RT5659_I2S2_SDP,
 					RT5659_I2S_MS_MASK, RT5659_I2S_MS_M);
+			}
 			break;
 		case RT5659_PWR_I2S3_BIT:
-			if (rt5659->master[RT5659_AIF3])
+			if (rt5659->master[RT5659_AIF3]) {
+				cancel_delayed_work_sync(
+					&rt5659->i2s_switch_slave_work[RT5659_AIF3]);
 				snd_soc_update_bits(codec, RT5659_I2S3_SDP,
 					RT5659_I2S_MS_MASK, RT5659_I2S_MS_M);
+			}
 			break;
 		default:
 			break;
@@ -3004,16 +3013,22 @@ static int rt5659_i2s_event(struct snd_soc_dapm_widget *w,
 	case SND_SOC_DAPM_POST_PMD:
 		switch (w->shift) {
 		case RT5659_PWR_I2S1_BIT:
-			snd_soc_update_bits(codec, RT5659_I2S1_SDP,
-				RT5659_I2S_MS_MASK, RT5659_I2S_MS_S);
+			if (rt5659->master[RT5659_AIF1])
+				schedule_delayed_work(
+					&rt5659->i2s_switch_slave_work[RT5659_AIF1],
+					msecs_to_jiffies(1000));
 			break;
 		case RT5659_PWR_I2S2_BIT:
-			snd_soc_update_bits(codec, RT5659_I2S2_SDP,
-				RT5659_I2S_MS_MASK, RT5659_I2S_MS_S);
+			if (rt5659->master[RT5659_AIF2])
+				schedule_delayed_work(
+					&rt5659->i2s_switch_slave_work[RT5659_AIF2],
+					msecs_to_jiffies(1000));
 			break;
 		case RT5659_PWR_I2S3_BIT:
-			snd_soc_update_bits(codec, RT5659_I2S3_SDP,
-				RT5659_I2S_MS_MASK, RT5659_I2S_MS_S);
+			if (rt5659->master[RT5659_AIF3])
+				schedule_delayed_work(
+					&rt5659->i2s_switch_slave_work[RT5659_AIF3],
+					msecs_to_jiffies(1000));
 			break;
 		default:
 			break;
@@ -5039,6 +5054,39 @@ void rt5659_calibrate(struct rt5659_priv *rt5659)
 	regmap_write(rt5659->regmap, RT5659_HP_CHARGE_PUMP_1, 0x0c16);
 }
 
+static void rt5659_i2s_switch_slave_work_0(struct work_struct *work)
+{
+	struct rt5659_priv *rt5659 =
+		container_of(work, struct rt5659_priv,
+		i2s_switch_slave_work[RT5659_AIF1].work);
+	struct snd_soc_codec *codec = rt5659->codec;
+
+	snd_soc_update_bits(codec, RT5659_I2S1_SDP, RT5659_I2S_MS_MASK,
+		RT5659_I2S_MS_S);
+}
+
+static void rt5659_i2s_switch_slave_work_1(struct work_struct *work)
+{
+	struct rt5659_priv *rt5659 =
+		container_of(work, struct rt5659_priv,
+		i2s_switch_slave_work[RT5659_AIF2].work);
+	struct snd_soc_codec *codec = rt5659->codec;
+
+	snd_soc_update_bits(codec, RT5659_I2S2_SDP, RT5659_I2S_MS_MASK,
+		RT5659_I2S_MS_S);
+}
+
+static void rt5659_i2s_switch_slave_work_2(struct work_struct *work)
+{
+	struct rt5659_priv *rt5659 =
+		container_of(work, struct rt5659_priv,
+		i2s_switch_slave_work[RT5659_AIF3].work);
+	struct snd_soc_codec *codec = rt5659->codec;
+
+	snd_soc_update_bits(codec, RT5659_I2S3_SDP, RT5659_I2S_MS_MASK,
+		RT5659_I2S_MS_S);
+}
+
 static int rt5659_i2c_probe(struct i2c_client *i2c,
 		    const struct i2c_device_id *id)
 {
@@ -5217,6 +5265,13 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 	if (rt5659->pdata.push_button_range_def)
 		regmap_write(rt5659->regmap, RT5659_IL_CMD_3,
 			rt5659->pdata.push_button_range_def);
+
+	INIT_DELAYED_WORK(&rt5659->i2s_switch_slave_work[RT5659_AIF1],
+		rt5659_i2s_switch_slave_work_0);
+	INIT_DELAYED_WORK(&rt5659->i2s_switch_slave_work[RT5659_AIF2],
+		rt5659_i2s_switch_slave_work_1);
+	INIT_DELAYED_WORK(&rt5659->i2s_switch_slave_work[RT5659_AIF3],
+		rt5659_i2s_switch_slave_work_2);
 
 	return snd_soc_register_codec(&i2c->dev, &soc_codec_dev_rt5659,
 			rt5659_dai, ARRAY_SIZE(rt5659_dai));

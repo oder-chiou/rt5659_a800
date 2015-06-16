@@ -1741,7 +1741,6 @@ enum {
 	RT5659_AIF1,
 	RT5659_AIF2,
 	RT5659_AIF3,
-	RT5659_AIF4,
 	RT5659_AIFS,
 };
 
@@ -1757,6 +1756,7 @@ struct rt5659_priv {
 	struct rt5659_platform_data pdata;
 	struct regmap *regmap;
 	struct i2c_client *i2c;
+	struct delayed_work i2s_switch_slave_work[RT5659_AIFS];
 
 	int aif_pu;	
 	int sysclk;
