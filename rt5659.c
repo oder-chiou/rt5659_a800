@@ -4712,6 +4712,12 @@ static int rt5659_suspend(struct snd_soc_codec *codec)
 {
 	snd_soc_update_bits(codec, RT5659_PWR_DIG_2,
 		RT5659_PWR_DAC_MF_L, 0);
+	snd_soc_update_bits(codec, RT5659_I2S1_SDP, RT5659_I2S_MS_MASK,
+		RT5659_I2S_MS_S);
+	snd_soc_update_bits(codec, RT5659_I2S2_SDP, RT5659_I2S_MS_MASK,
+		RT5659_I2S_MS_S);
+	snd_soc_update_bits(codec, RT5659_I2S3_SDP, RT5659_I2S_MS_MASK,
+		RT5659_I2S_MS_S);
 	return 0;
 }
 
