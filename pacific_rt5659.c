@@ -67,7 +67,7 @@ static struct rt5659_machine_priv pacific_rt5659_priv = {
 		.invert = 1,
 		.report = SND_JACK_HEADSET | SND_JACK_BTN_0 | SND_JACK_BTN_1
 			| SND_JACK_BTN_2 | SND_JACK_BTN_3,
-		.debounce_time = 100,
+		.debounce_time = 200,
 		.wake = true,
 		.jack_status_check = rt5659_jack_status_check,
 	},
