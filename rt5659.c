@@ -3635,8 +3635,8 @@ static const struct snd_soc_dapm_route rt5659_dapm_routes[] = {
 
 	{ "Stereo1 DMIC L Mux", NULL, "DMIC STO1 ASRC", rt5659_dmic_use_asrc },
 	{ "Stereo1 DMIC R Mux", NULL, "DMIC STO1 ASRC", rt5659_dmic_use_asrc },
-	{ "Mono DMIC L Mux", NULL, "DMIC MONO L ASRC", rt5659_dmic_use_asrc },
-	{ "Mono DMIC R Mux", NULL, "DMIC MONO R ASRC", rt5659_dmic_use_asrc },
+	{ "Mono DMIC L Mux", NULL, "DMIC Mono L ASRC", rt5659_dmic_use_asrc },
+	{ "Mono DMIC R Mux", NULL, "DMIC Mono R ASRC", rt5659_dmic_use_asrc },
 
 	{ "IN1P", NULL, "LDO2" },
 	{ "IN2P", NULL, "LDO2" },
