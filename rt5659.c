@@ -8,7 +8,6 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
-#define DEBUG
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -39,7 +38,12 @@ static struct snd_soc_codec *registered_codec;
 /* Delay(ms) after powering on DMIC for avoiding pop */
 static int dmic_power_delay = 450;
 module_param(dmic_power_delay, int, 0644);
+
+#if defined(CONFIG_SEC_FACTORY)
 static int adc_power_delay = 200;
+#else
+static int adc_power_delay = 0;
+#endif
 module_param(adc_power_delay, int, 0644);
 
 #define VERSION "0.4 alsa 1.0.25"
@@ -1535,12 +1539,7 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 				RT5659_PWR_MIC_DET, RT5659_PWR_MIC_DET);
 
 			snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_2, 0x8000, 0x8000);
-			while (true) {
-				snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_1, 0xfff0, 0xfff0);
-				regmap_read(rt5659->regmap, RT5659_4BTN_IL_CMD_1, &value);
-				if (!(value & 0xfff0))
-					break;
-			}
+			snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_1, 0xfff0, 0xfff0);
 			snd_soc_update_bits(codec, RT5659_IRQ_CTRL_2, 0x8, 0x8);
 
 			return 1;
@@ -1562,7 +1561,7 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 		regmap_update_bits(rt5659->regmap, RT5659_PWR_VOL,
 			RT5659_PWR_MIC_DET, 0);
 		regmap_update_bits(rt5659->regmap, RT5659_PWR_ANLG_2,
-			RT5659_PWR_MB1, 0);
+			RT5659_PWR_MB1,	0);
 	}
 
 	snd_soc_update_bits(codec, RT5659_IRQ_CTRL_2, 0x8, 0x0);
@@ -1755,39 +1754,6 @@ static int rt5659_jack_type_put(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-static const char *rt5659_loopback_mode[] = {
-	"Disable", "Enable"
-};
-
-static const SOC_ENUM_SINGLE_DECL(rt5659_loopback_enum, 0, 0,
-	rt5659_loopback_mode);
-
-static int rt5659_loopback_get(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_value *ucontrol)
-{
-	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
-	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
-
-	ucontrol->value.integer.value[0] = rt5659->do_loopback_test;
-
-	return 0;
-}
-
-static int rt5659_loopback_put(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_value *ucontrol)
-{
-	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
-	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
-
-	rt5659->do_loopback_test = ucontrol->value.integer.value[0];
-	if (rt5659->do_loopback_test)
-		rt5659->adc_power_delay = adc_power_delay;
-	else
-		rt5659->adc_power_delay = 0;
-
-	return 0;
-}
-
 static const struct snd_kcontrol_new rt5659_snd_controls[] = {
 	/* Speaker Output Volume */
 	SOC_DOUBLE_TLV("Speaker Playback Volume", RT5659_SPO_VOL,
@@ -1890,8 +1856,6 @@ static const struct snd_kcontrol_new rt5659_snd_controls[] = {
 		rt5659_push_btn_get, rt5659_push_btn_put),
 	SOC_ENUM_EXT("jack type", rt5659_jack_type_enum,
 		rt5659_jack_type_get, rt5659_jack_type_put),
-	SOC_ENUM_EXT("loopback test", rt5659_loopback_enum,
-		rt5659_loopback_get, rt5659_loopback_put),
 };
 
 /**
@@ -3085,7 +3049,6 @@ static int rt5659_i2s_event(struct snd_soc_dapm_widget *w,
 		case RT5659_PWR_I2S2_BIT:
 			if (rt5659->dac1_en)
 				rt5659_noise_gate(codec, true);
-
 			if (rt5659->master[RT5659_AIF2])
 				schedule_delayed_work(
 					&rt5659->i2s_switch_slave_work[RT5659_AIF2],
@@ -3094,7 +3057,6 @@ static int rt5659_i2s_event(struct snd_soc_dapm_widget *w,
 		case RT5659_PWR_I2S3_BIT:
 			if (rt5659->dac1_en)
 				rt5659_noise_gate(codec, true);
-
 			if (rt5659->master[RT5659_AIF3])
 				schedule_delayed_work(
 					&rt5659->i2s_switch_slave_work[RT5659_AIF3],
@@ -3174,6 +3136,7 @@ static int rt5659_monol_filter_event(struct snd_soc_dapm_widget *w,
 		snd_soc_update_bits(codec, RT5659_MONO_DAC_MIXER,
 			RT5659_M_DAC_L2_MONO_L | RT5659_M_DAC_L2_MONO_R,
 			RT5659_M_DAC_L2_MONO_L | RT5659_M_DAC_L2_MONO_R);
+
 		break;
 
 	case SND_SOC_DAPM_POST_PMU:
@@ -3232,14 +3195,12 @@ static int rt5659_monor_filter_event(struct snd_soc_dapm_widget *w,
 static int rt5659_adc_depop_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = w->codec;
-	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
 
 	pr_debug("%s\n", __func__);
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
-		msleep(rt5659->adc_power_delay);
+		msleep(adc_power_delay);
 		break;
 
 	default:
@@ -3307,9 +3268,9 @@ static const struct snd_soc_dapm_widget rt5659_dapm_widgets[] = {
 		RT5659_ADC_MONO_R_ASRC_SFT, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY_S("DMIC STO1 ASRC", 1, RT5659_ASRC_1,
 		RT5659_DMIC_STO1_ASRC_SFT, 0, NULL, 0),
-	SND_SOC_DAPM_SUPPLY_S("DMIC Mono L ASRC", 1, RT5659_ASRC_1,
+	SND_SOC_DAPM_SUPPLY_S("DMIC MONO L ASRC", 1, RT5659_ASRC_1,
 		RT5659_DMIC_MONO_L_ASRC_SFT, 0, NULL, 0),
-	SND_SOC_DAPM_SUPPLY_S("DMIC Mono R ASRC", 1, RT5659_ASRC_1,
+	SND_SOC_DAPM_SUPPLY_S("DMIC MONO R ASRC", 1, RT5659_ASRC_1,
 		RT5659_DMIC_MONO_R_ASRC_SFT, 0, NULL, 0),
 
 	/* Input Side */
@@ -3367,24 +3328,14 @@ static const struct snd_soc_dapm_widget rt5659_dapm_widgets[] = {
 		0, NULL, 0),
 
 	/* REC Mixer */
-	SND_SOC_DAPM_MIXER("RECMIX1L", SND_SOC_NOPM, 0, 0, rt5659_rec1_l_mix,
-		ARRAY_SIZE(rt5659_rec1_l_mix)),
-	SND_SOC_DAPM_MIXER("RECMIX1R", SND_SOC_NOPM, 0, 0, rt5659_rec1_r_mix,
-		ARRAY_SIZE(rt5659_rec1_r_mix)),
-	SND_SOC_DAPM_MIXER("RECMIX2L", SND_SOC_NOPM, 0, 0, rt5659_rec2_l_mix,
-		ARRAY_SIZE(rt5659_rec2_l_mix)),
-	SND_SOC_DAPM_MIXER("RECMIX2R", SND_SOC_NOPM, 0, 0, rt5659_rec2_r_mix,
-		ARRAY_SIZE(rt5659_rec2_r_mix)),
-
-	/* REC Mixer Power */
-	SND_SOC_DAPM_SUPPLY("RECMIX1L Power", RT5659_PWR_MIXER,
-		RT5659_PWR_RM1_L_BIT, 0, NULL, 0),
-	SND_SOC_DAPM_SUPPLY("RECMIX1R Power", RT5659_PWR_MIXER,
-		RT5659_PWR_RM1_R_BIT, 0, NULL, 0),
-	SND_SOC_DAPM_SUPPLY("RECMIX2L Power", RT5659_PWR_MIXER,
-		RT5659_PWR_RM2_L_BIT, 0, NULL, 0),
-	SND_SOC_DAPM_SUPPLY("RECMIX2R Power", RT5659_PWR_MIXER,
-		RT5659_PWR_RM2_R_BIT, 0, NULL, 0),
+	SND_SOC_DAPM_MIXER("RECMIX1L", RT5659_PWR_MIXER, RT5659_PWR_RM1_L_BIT,
+		0, rt5659_rec1_l_mix, ARRAY_SIZE(rt5659_rec1_l_mix)),
+	SND_SOC_DAPM_MIXER("RECMIX1R", RT5659_PWR_MIXER, RT5659_PWR_RM1_R_BIT,
+		0, rt5659_rec1_r_mix, ARRAY_SIZE(rt5659_rec1_r_mix)),
+	SND_SOC_DAPM_MIXER("RECMIX2L", RT5659_PWR_MIXER, RT5659_PWR_RM2_L_BIT,
+		0, rt5659_rec2_l_mix, ARRAY_SIZE(rt5659_rec2_l_mix)),
+	SND_SOC_DAPM_MIXER("RECMIX2R", RT5659_PWR_MIXER, RT5659_PWR_RM2_R_BIT,
+		0, rt5659_rec2_r_mix, ARRAY_SIZE(rt5659_rec2_r_mix)),
 
 	/* ADCs */
 	SND_SOC_DAPM_ADC("ADC1 L", NULL, SND_SOC_NOPM, 0, 0),
@@ -3404,7 +3355,6 @@ static const struct snd_soc_dapm_widget rt5659_dapm_widgets[] = {
 		SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_PRE_PMD),
 	SND_SOC_DAPM_SUPPLY("ADC2 clock", SND_SOC_NOPM, 0, 0, set_adc_clk,
 		SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_PRE_PMD),
-
 	/* ADC Mux */
 	SND_SOC_DAPM_MUX("Stereo1 DMIC L Mux", SND_SOC_NOPM, 0, 0,
 		&rt5659_sto1_dmic_mux),
@@ -3438,28 +3388,25 @@ static const struct snd_soc_dapm_widget rt5659_dapm_widgets[] = {
 		&rt5659_mono_adc_l_mux),
 	SND_SOC_DAPM_MUX("Mono ADC R Mux", SND_SOC_NOPM, 0, 0,
 		&rt5659_mono_adc_r_mux),
-
 	/* ADC Mixer */
+	SND_SOC_DAPM_SUPPLY("ADC Stereo1 Filter", RT5659_PWR_DIG_2,
+		RT5659_PWR_ADC_S1F_BIT, 0, NULL, 0),
+	SND_SOC_DAPM_SUPPLY("ADC Stereo2 Filter", RT5659_PWR_DIG_2,
+		RT5659_PWR_ADC_S2F_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_MIXER("Stereo1 ADC MIXL", SND_SOC_NOPM,
 		0, 0, rt5659_sto1_adc_l_mix,
 		ARRAY_SIZE(rt5659_sto1_adc_l_mix)),
 	SND_SOC_DAPM_MIXER("Stereo1 ADC MIXR", SND_SOC_NOPM,
 		0, 0, rt5659_sto1_adc_r_mix,
 		ARRAY_SIZE(rt5659_sto1_adc_r_mix)),
-	SND_SOC_DAPM_MIXER("Mono ADC MIXL", SND_SOC_NOPM, 0, 1,
-		rt5659_mono_adc_l_mix, ARRAY_SIZE(rt5659_mono_adc_l_mix)),
-	SND_SOC_DAPM_MIXER("Mono ADC MIXR", SND_SOC_NOPM, 0, 1,
-		rt5659_mono_adc_r_mix, ARRAY_SIZE(rt5659_mono_adc_r_mix)),
-
-	/* ADC Filter Power */
-	SND_SOC_DAPM_SUPPLY("ADC Stereo1 Filter", RT5659_PWR_DIG_2,
-		RT5659_PWR_ADC_S1F_BIT, 0, NULL, 0),
-	SND_SOC_DAPM_SUPPLY("ADC Stereo2 Filter", RT5659_PWR_DIG_2,
-		RT5659_PWR_ADC_S2F_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("ADC Mono Left Filter", RT5659_PWR_DIG_2,
 		RT5659_PWR_ADC_MF_L_BIT, 0, NULL, 0),
+	SND_SOC_DAPM_MIXER("Mono ADC MIXL", SND_SOC_NOPM, 0, 1,
+		rt5659_mono_adc_l_mix, ARRAY_SIZE(rt5659_mono_adc_l_mix)),
 	SND_SOC_DAPM_SUPPLY("ADC Mono Right Filter", RT5659_PWR_DIG_2,
 		RT5659_PWR_ADC_MF_R_BIT, 0, NULL, 0),
+	SND_SOC_DAPM_MIXER("Mono ADC MIXR", SND_SOC_NOPM, 0, 1,
+		rt5659_mono_adc_r_mix, ARRAY_SIZE(rt5659_mono_adc_r_mix)),
 
 	/* ADC PGA */
 	SND_SOC_DAPM_PGA("IF_ADC1", SND_SOC_NOPM, 0, 0, NULL, 0),
@@ -3522,11 +3469,11 @@ static const struct snd_soc_dapm_widget rt5659_dapm_widgets[] = {
 
 	/* Audio Interface */
 	SND_SOC_DAPM_AIF_IN("AIF1RX", "AIF1 Playback", 0, SND_SOC_NOPM, 0, 0),
-	SND_SOC_DAPM_AIF_OUT("AIF1TX", "AIF1 Capture", 0, RT5659_I2S1_SDP, 14, 1),
+	SND_SOC_DAPM_AIF_OUT("AIF1TX", "AIF1 Capture", 0, SND_SOC_NOPM, 0, 0),
 	SND_SOC_DAPM_AIF_IN("AIF2RX", "AIF2 Playback", 0, SND_SOC_NOPM, 0, 0),
-	SND_SOC_DAPM_AIF_OUT("AIF2TX", "AIF2 Capture", 0, RT5659_I2S2_SDP, 14, 1),
+	SND_SOC_DAPM_AIF_OUT("AIF2TX", "AIF2 Capture", 0, SND_SOC_NOPM, 0, 0),
 	SND_SOC_DAPM_AIF_IN("AIF3RX", "AIF3 Playback", 0, SND_SOC_NOPM, 0, 0),
-	SND_SOC_DAPM_AIF_OUT("AIF3TX", "AIF3 Capture", 0, RT5659_I2S3_SDP, 14, 1),
+	SND_SOC_DAPM_AIF_OUT("AIF3TX", "AIF3 Capture", 0, SND_SOC_NOPM, 0, 0),
 
 	/* Output Side */
 	/* DAC mixer before sound effect  */
@@ -3707,8 +3654,8 @@ static const struct snd_soc_dapm_route rt5659_dapm_routes[] = {
 
 	{ "Stereo1 DMIC L Mux", NULL, "DMIC STO1 ASRC", rt5659_dmic_use_asrc },
 	{ "Stereo1 DMIC R Mux", NULL, "DMIC STO1 ASRC", rt5659_dmic_use_asrc },
-	{ "Mono DMIC L Mux", NULL, "DMIC Mono L ASRC", rt5659_dmic_use_asrc },
-	{ "Mono DMIC R Mux", NULL, "DMIC Mono R ASRC", rt5659_dmic_use_asrc },
+	{ "Mono DMIC L Mux", NULL, "DMIC MONO L ASRC", rt5659_dmic_use_asrc },
+	{ "Mono DMIC R Mux", NULL, "DMIC MONO R ASRC", rt5659_dmic_use_asrc },
 
 	{ "IN1P", NULL, "LDO2" },
 	{ "IN2P", NULL, "LDO2" },
@@ -3742,7 +3689,6 @@ static const struct snd_soc_dapm_route rt5659_dapm_routes[] = {
 	{ "RECMIX1L", "BST3 Switch", "BST3" },
 	{ "RECMIX1L", "BST2 Switch", "BST2" },
 	{ "RECMIX1L", "BST1 Switch", "BST1" },
-	{ "RECMIX1L", NULL, "RECMIX1L Power" },
 
 	{ "RECMIX1R", "HPOVOLR Switch", "HPO R Playback" },
 	{ "RECMIX1R", "INR Switch", "INR VOL" },
@@ -3750,7 +3696,6 @@ static const struct snd_soc_dapm_route rt5659_dapm_routes[] = {
 	{ "RECMIX1R", "BST3 Switch", "BST3" },
 	{ "RECMIX1R", "BST2 Switch", "BST2" },
 	{ "RECMIX1R", "BST1 Switch", "BST1" },
-	{ "RECMIX1R", NULL, "RECMIX1R Power" },
 
 	{ "RECMIX2L", "SPKVOLL Switch", "SPKVOL L" },
 	{ "RECMIX2L", "OUTVOLL Switch", "OUTVOL L" },
@@ -3758,7 +3703,6 @@ static const struct snd_soc_dapm_route rt5659_dapm_routes[] = {
 	{ "RECMIX2L", "BST3 Switch", "BST3" },
 	{ "RECMIX2L", "BST2 Switch", "BST2" },
 	{ "RECMIX2L", "BST1 Switch", "BST1" },
-	{ "RECMIX2L", NULL, "RECMIX2L Power" },
 
 	{ "RECMIX2R", "MONOVOL Switch", "MONOVOL" },
 	{ "RECMIX2R", "OUTVOLR Switch", "OUTVOL R" },
@@ -3766,7 +3710,6 @@ static const struct snd_soc_dapm_route rt5659_dapm_routes[] = {
 	{ "RECMIX2R", "BST3 Switch", "BST3" },
 	{ "RECMIX2R", "BST2 Switch", "BST2" },
 	{ "RECMIX2R", "BST1 Switch", "BST1" },
-	{ "RECMIX2R", NULL, "RECMIX2R Power" },
 
 	{ "ADC1 L", NULL, "RECMIX1L" },
 	{ "ADC1 L", NULL, "ADC1 L Power" },
@@ -3937,17 +3880,17 @@ static const struct snd_soc_dapm_route rt5659_dapm_routes[] = {
 	{ "DAC L1 Mux", "IF1 DAC1", "IF1 DAC1 L" },
 	{ "DAC L1 Mux", "IF2 DAC", "IF2 DAC L" },
 	{ "DAC L1 Mux", "IF3 DAC", "IF3 DAC L" },
+	{ "DAC L1 Mux", NULL, "DAC Stereo1 Filter" },
 
 	{ "DAC R1 Mux", "IF1 DAC1", "IF1 DAC1 R" },
 	{ "DAC R1 Mux", "IF2 DAC", "IF2 DAC R" },
 	{ "DAC R1 Mux", "IF3 DAC", "IF3 DAC R" },
+	{ "DAC R1 Mux", NULL, "DAC Stereo1 Filter" },
 
 	{ "DAC1 MIXL", "Stereo ADC Switch", "Stereo1 ADC Volume L" },
 	{ "DAC1 MIXL", "DAC1 Switch", "DAC L1 Mux" },
-	{ "DAC1 MIXL", NULL, "DAC Stereo1 Filter" },
 	{ "DAC1 MIXR", "Stereo ADC Switch", "Stereo1 ADC Volume R" },
 	{ "DAC1 MIXR", "DAC1 Switch", "DAC R1 Mux" },
-	{ "DAC1 MIXR", NULL, "DAC Stereo1 Filter" },
 
 	{ "DAC_REF", NULL, "DAC L1" },
 	{ "DAC_REF", NULL, "DAC R1" },
@@ -4512,7 +4455,7 @@ static ssize_t rt5659_codec_show(struct device *dev,
 		cnt += snprintf(buf + cnt, RT5659_REG_DISP_LEN,
 				 "%04x: %04x\n", i, val);
 	}
-
+	
 	if (cnt >= PAGE_SIZE)
 		cnt = PAGE_SIZE - 1;
 
@@ -4753,6 +4696,7 @@ static int rt5659_probe(struct snd_soc_codec *codec)
 
 	rt5659_reg_init(codec);
 	rt5659_set_bias_level(codec, SND_SOC_BIAS_OFF);
+
 	regmap_update_bits(rt5659->regmap, RT5659_PWR_DIG_2,
 		RT5659_PWR_DAC_MF_L, RT5659_PWR_DAC_MF_L);
 
@@ -4795,7 +4739,6 @@ static int rt5659_suspend(struct snd_soc_codec *codec)
 		RT5659_I2S_MS_S);
 	snd_soc_update_bits(codec, RT5659_I2S3_SDP, RT5659_I2S_MS_MASK,
 		RT5659_I2S_MS_S);
-
 	return 0;
 }
 
@@ -5245,7 +5188,7 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 
 	rt5659_calibrate(rt5659);
 
-	pr_debug("%s: dmic1_data_pin = %d, dmic2_data_pin =%d\n", __func__,
+	pr_debug("%s: dmic1_data_pin = %d, dmic2_data_pin =%d",	__func__,
 		rt5659->pdata.dmic1_data_pin, rt5659->pdata.dmic2_data_pin);
 
 	/* line in diff mode*/

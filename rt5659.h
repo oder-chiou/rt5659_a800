@@ -1721,6 +1721,19 @@
 #define RT5659_AD2DA_LB_SFT			9
 
 
+/* Micbias Voltage */
+#ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
+#define RT5659_MICBIAS1_VOLTAGE_MASK	(0x3 << 14)
+#define RT5659_MICBIAS1_VOLTAGE_SFT		14
+
+enum micb_voltage {
+	MIC_BIAS_V2P70V = 0,
+	MIC_BIAS_V2P40V,
+	MIC_BIAS_V2P25V,
+	MIC_BIAS_V1P80V
+};
+#endif
+
 /* System Clock Source */
 enum {
 	RT5659_SCLK_S_MCLK,
@@ -1776,8 +1789,6 @@ struct rt5659_priv {
 	int dmic_en;
 	bool do_impedance_sensing;
 	bool dac1_en;
-	int adc_power_delay;
-	bool do_loopback_test;
 	unsigned int impedance_value;
 
 	unsigned int adb_reg_addr[0x100];
@@ -1790,5 +1801,8 @@ int rt5659_headset_detect(struct snd_soc_codec *codec, int jack_insert);
 int rt5659_button_detect(struct snd_soc_codec *codec);
 int rt5659_check_jd_status(struct snd_soc_codec *codec);
 int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action);
+#ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
+void rt5659_dynamic_control_micbias(int micb_out_val);
+#endif
 
 #endif /* __RT5659_H__ */

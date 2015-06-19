@@ -112,23 +112,13 @@ int rt5659_jack_status_check(void)
 	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
 #endif
 	int report = 0, ret;
-	printk("enter %s\n", __func__);
-/*
-	regmap_update_bits(rt5659->regmap, RT5659_PWR_ANLG_1, 0xa200,
-			0xa200);
-	regmap_update_bits(rt5659->regmap, RT5659_PWR_ANLG_2, 0x0801,
-			0x0801);
-	regmap_write(rt5659->regmap, RT5659_RC_CLK_CTRL, 0x1100);
-*/
-	msleep(100);
-	
+
 	if (rt5659_check_jd_status(codec) && !pacific_rt5659_priv.jd_status) {
 		pacific_rt5659_priv.jd_status = true;
 		ret = rt5659_get_jack_type(codec, 1);
 		switch_set_state(&rt5659_headset_switch, ret);
 		if (ret == 1) {
 			report |= SND_JACK_HEADSET;
-			mod_timer(&pacific_rt5659_priv.jd_check_timer, jiffies);
 		} else {
 			report |= SND_JACK_HEADPHONE;
 		}
@@ -173,14 +163,18 @@ int rt5659_jack_status_check(void)
 			printk("%s: Jack key realsed\n", __func__);
 
 		report |= SND_JACK_HEADSET;
+
+		if (report & (SND_JACK_BTN_0 & SND_JACK_BTN_1 & SND_JACK_BTN_2 & SND_JACK_BTN_3))
+			mod_timer(&pacific_rt5659_priv.jd_check_timer, jiffies);
+		else
+			del_timer(&pacific_rt5659_priv.jd_check_timer);
 	} else {
-		if(pacific_rt5659_priv.jd_status)
+		if (pacific_rt5659_priv.jd_status)
 			printk("%s: Jack removed\n", __func__);
+
 		pacific_rt5659_priv.jd_status = false;
 		rt5659_get_jack_type(codec, 0);
 		switch_set_state(&rt5659_headset_switch, 0);
-		del_timer(&pacific_rt5659_priv.jd_check_timer);
-
 	}
 
 	return report;
