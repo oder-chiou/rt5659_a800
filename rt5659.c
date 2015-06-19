@@ -1781,9 +1781,9 @@ static int rt5659_loopback_put(struct snd_kcontrol *kcontrol,
 
 	rt5659->do_loopback_test = ucontrol->value.integer.value[0];
 	if (rt5659->do_loopback_test)
-		rt5659->adc_power_delay = 0;
-	else
 		rt5659->adc_power_delay = adc_power_delay;
+	else
+		rt5659->adc_power_delay = 0;
 
 	return 0;
 }
