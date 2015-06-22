@@ -3028,7 +3028,6 @@ static int rt5659_i2s_event(struct snd_soc_dapm_widget *w,
 			}
 			break;
 		case RT5659_PWR_I2S2_BIT:
-			rt5659_noise_gate(codec, false);
 			if (rt5659->master[RT5659_AIF2]) {
 				cancel_delayed_work_sync(
 					&rt5659->i2s_switch_slave_work[RT5659_AIF2]);
@@ -3037,7 +3036,6 @@ static int rt5659_i2s_event(struct snd_soc_dapm_widget *w,
 			}
 			break;
 		case RT5659_PWR_I2S3_BIT:
-			rt5659_noise_gate(codec, false);
 			if (rt5659->master[RT5659_AIF3]) {
 				cancel_delayed_work_sync(
 					&rt5659->i2s_switch_slave_work[RT5659_AIF3]);
@@ -3059,16 +3057,12 @@ static int rt5659_i2s_event(struct snd_soc_dapm_widget *w,
 					msecs_to_jiffies(1000));
 			break;
 		case RT5659_PWR_I2S2_BIT:
-			if (rt5659->dac1_en)
-				rt5659_noise_gate(codec, true);
 			if (rt5659->master[RT5659_AIF2])
 				schedule_delayed_work(
 					&rt5659->i2s_switch_slave_work[RT5659_AIF2],
 					msecs_to_jiffies(1000));
 			break;
 		case RT5659_PWR_I2S3_BIT:
-			if (rt5659->dac1_en)
-				rt5659_noise_gate(codec, true);
 			if (rt5659->master[RT5659_AIF3])
 				schedule_delayed_work(
 					&rt5659->i2s_switch_slave_work[RT5659_AIF3],
@@ -3227,19 +3221,43 @@ static int rt5659_dac1_event(struct snd_soc_dapm_widget *w,
 {
 	struct snd_soc_codec *codec = w->codec;
 	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
-	unsigned int reg;
+
 	pr_debug("%s\n", __func__);
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
 		rt5659->dac1_en = true;
-		reg = snd_soc_read(codec, RT5659_PWR_DIG_1) & (RT5659_PWR_I2S2 & RT5659_PWR_I2S3);
-		if (!reg)
+		if (!rt5659->dac2_en)
 			rt5659_noise_gate(codec, true);
 		break;
 	case SND_SOC_DAPM_POST_PMD:
 		rt5659->dac1_en = false;
 		rt5659_noise_gate(codec, false);
+		break;
+	default:
+		return 0;
+	}
+
+	return 0;
+}
+
+static int rt5659_dac2_event(struct snd_soc_dapm_widget *w,
+	struct snd_kcontrol *kcontrol, int event)
+{
+	struct snd_soc_codec *codec = w->codec;
+	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
+
+	pr_debug("%s\n", __func__);
+
+	switch (event) {
+	case SND_SOC_DAPM_PRE_PMU:
+		rt5659->dac2_en = true;
+		rt5659_noise_gate(codec, false);
+		break;
+	case SND_SOC_DAPM_POST_PMD:
+		rt5659->dac2_en = false;
+		if (rt5659->dac1_en)
+			rt5659_noise_gate(codec, true);
 		break;
 	default:
 		return 0;
@@ -3498,7 +3516,8 @@ static const struct snd_soc_dapm_widget rt5659_dapm_widgets[] = {
 	SND_SOC_DAPM_MUX_E("DAC L1 Mux", SND_SOC_NOPM, 0, 0, &rt5659_dac_l1_mux,
 		rt5659_dac1_event, SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
 	SND_SOC_DAPM_MUX("DAC R1 Mux", SND_SOC_NOPM, 0, 0, &rt5659_dac_r1_mux),
-	SND_SOC_DAPM_MUX("DAC L2 Mux", SND_SOC_NOPM, 0, 0, &rt5659_dac_l2_mux),
+	SND_SOC_DAPM_MUX_E("DAC L2 Mux", SND_SOC_NOPM, 0, 0, &rt5659_dac_l2_mux,
+		rt5659_dac2_event, SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
 	SND_SOC_DAPM_MUX("DAC R2 Mux", SND_SOC_NOPM, 0, 0, &rt5659_dac_r2_mux),
 
 	SND_SOC_DAPM_MUX("DAC L1 Source", SND_SOC_NOPM, 0, 0,
