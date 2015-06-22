@@ -1507,7 +1507,7 @@ EXPORT_SYMBOL(rt5659_check_jd_status);
 int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 {
 	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
-	int value;
+	unsigned int i, regdd, headset = 0;
 
 	if (action) {
 #ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
@@ -1515,42 +1515,49 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 #endif
 		if (codec->card->instantiated) {
 			snd_soc_dapm_force_enable_pin(&codec->dapm, "MICBIAS1");
+			snd_soc_dapm_force_enable_pin(&codec->dapm, "Mic Det Power");
 			snd_soc_dapm_sync(&codec->dapm);
 		}
-		regmap_update_bits(rt5659->regmap, RT5659_PWR_ANLG_1, 0xa200,
-			0xa200);
-		regmap_update_bits(rt5659->regmap, RT5659_PWR_ANLG_2, 0x0801,
-			0x0801);
-		regmap_write(rt5659->regmap, RT5659_RC_CLK_CTRL, 0x1100);
 
-		msleep(100);
-		regmap_read(rt5659->regmap, RT5659_GPIO_STA, &value);
-		regmap_write(rt5659->regmap, RT5659_RC_CLK_CTRL, 0x9000);
-		if (value & 0x4) {
+		snd_soc_update_bits(codec, RT5659_PWR_ANLG_1,
+			RT5659_PWR_MB | RT5659_PWR_VREF1 | RT5659_PWR_VREF2,
+			RT5659_PWR_MB | RT5659_PWR_VREF1 | RT5659_PWR_VREF2);
+		snd_soc_update_bits(codec, RT5659_PWR_ANLG_2, RT5659_PWR_MB1,
+			RT5659_PWR_MB1);
+		snd_soc_update_bits(codec, RT5659_PWR_VOL, RT5659_PWR_MIC_DET,
+			RT5659_PWR_MIC_DET);
+
+		regdd = snd_soc_read(codec, RT5659_IL_CMD_3);
+		snd_soc_update_bits(codec, RT5659_IL_CMD_3, 0xf, 0x7);
+		snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_2, 0x8000, 0x8000);
+
+		for (i = 0; i < 5; i++) {
+			msleep(10);
+
+			if (snd_soc_read(codec, RT5659_JD_CTRL_3) & 0x8000)
+				headset++;
+		}
+
+		snd_soc_write(codec, RT5659_IL_CMD_3, regdd);
+
+		if (headset >= 3) {
 #ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
 			rt5659_dynamic_control_micbias(rt5659->pdata.dynamic_micb_ctrl_voltage);
 #endif
-			if (codec->card->instantiated) {
-				snd_soc_dapm_force_enable_pin(&codec->dapm, "Mic Det Power");
-				snd_soc_dapm_sync(&codec->dapm);
+
+			while (true) {
+				snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_1,
+					0xfff0, 0xfff0);
+				if (!(snd_soc_read(codec, RT5659_4BTN_IL_CMD_1)
+					& 0xfff0))
+					break;
 			}
-
-			snd_soc_update_bits(codec, RT5659_PWR_VOL,
-				RT5659_PWR_MIC_DET, RT5659_PWR_MIC_DET);
-
-			snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_2, 0x8000, 0x8000);
-			snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_1, 0xfff0, 0xfff0);
 			snd_soc_update_bits(codec, RT5659_IRQ_CTRL_2, 0x8, 0x8);
 
 			return 1;
 		}
-		if (codec->card->instantiated) {
-			snd_soc_dapm_disable_pin(&codec->dapm, "MICBIAS1");
-			snd_soc_dapm_sync(&codec->dapm);
-		}
-
-		return 2;
 	}
+
 	if (codec->card->instantiated) {
 		snd_soc_dapm_disable_pin(&codec->dapm, "MICBIAS1");
 		snd_soc_dapm_disable_pin(&codec->dapm, "Mic Det Power");
@@ -1558,15 +1565,20 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 	}
 
 	if (codec->dapm.bias_level == SND_SOC_BIAS_OFF) {
-		regmap_update_bits(rt5659->regmap, RT5659_PWR_VOL,
-			RT5659_PWR_MIC_DET, 0);
-		regmap_update_bits(rt5659->regmap, RT5659_PWR_ANLG_2,
-			RT5659_PWR_MB1,	0);
+		snd_soc_update_bits(codec, RT5659_PWR_ANLG_1,
+			RT5659_PWR_MB | RT5659_PWR_VREF1 | RT5659_PWR_VREF2, 0);
+		snd_soc_update_bits(codec, RT5659_PWR_ANLG_2, RT5659_PWR_MB1,
+			0);
+		snd_soc_update_bits(codec, RT5659_PWR_VOL, RT5659_PWR_MIC_DET,
+			0);
 	}
 
 	snd_soc_update_bits(codec, RT5659_IRQ_CTRL_2, 0x8, 0x0);
 	snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_2, 0x8000, 0x0);
 	snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_1, 0xfff0, 0xfff0);
+
+	if (action)
+		return 2;
 
 	return 0;
 }
