@@ -4945,17 +4945,24 @@ void rt5659_calibrate(struct rt5659_priv *rt5659)
 	regmap_write(rt5659->regmap, RT5659_GLB_CLK, 0x8000);
 
 	regmap_write(rt5659->regmap, RT5659_PWR_ANLG_1, 0xaa7e);
-	msleep(20);
+	msleep(60);
 	regmap_write(rt5659->regmap, RT5659_PWR_ANLG_1, 0xfe7e);
+	msleep(50);
 	regmap_write(rt5659->regmap, RT5659_PWR_ANLG_3, 0x0004);
 	regmap_write(rt5659->regmap, RT5659_PWR_DIG_2, 0x0400);
+	msleep(50);
 	regmap_write(rt5659->regmap, RT5659_PWR_DIG_1, 0x0080);
+	msleep(10);
 	regmap_write(rt5659->regmap, RT5659_DEPOP_1, 0x0009);
+	msleep(50);
 	regmap_write(rt5659->regmap, RT5659_PWR_DIG_1, 0x0f80);
+	msleep(50);
 	regmap_write(rt5659->regmap, RT5659_HP_CHARGE_PUMP_1, 0x0e16);
+	msleep(50);
 
 	/* Enalbe K ADC Power And Clock */
 	regmap_write(rt5659->regmap, RT5659_CAL_REC, 0x0505);
+	msleep(50);
 	regmap_write(rt5659->regmap, RT5659_PWR_ANLG_3, 0x0184);
 	regmap_write(rt5659->regmap, RT5659_CALIB_ADC_CTRL, 0x3c05);
 	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_2, 0x20c1);
