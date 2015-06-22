@@ -4025,7 +4025,6 @@ static const struct snd_soc_dapm_route rt5659_dapm_routes[] = {
 	{ "Mono MIX", "MONOVOL Switch", "MONOVOL" },
 	{ "Mono Amp", NULL, "Mono MIX" },
 	{ "Mono Amp", NULL, "Mono Vref" },
-	{ "Mono Amp", NULL, "DAC Stereo1 Filter" },
 	{ "Mono Playback", "Switch", "Mono Amp" },
 	{ "MONOOUT", NULL, "Mono Playback" },
 
