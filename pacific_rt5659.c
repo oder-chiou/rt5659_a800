@@ -18,6 +18,7 @@
 #include <linux/input.h>
 #include <linux/delay.h>
 #include <linux/wakelock.h>
+#include <linux/mutex.h>
 
 #include <linux/mfd/arizona/registers.h>
 #include <linux/mfd/arizona/core.h>
@@ -59,6 +60,7 @@ struct rt5659_machine_priv {
 #ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
 	bool earmic_enabled;
 #endif
+	struct mutex mutex;
 };
 
 static struct rt5659_machine_priv pacific_rt5659_priv = {
@@ -112,6 +114,8 @@ int rt5659_jack_status_check(void)
 	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
 #endif
 	int report = 0, ret;
+
+	mutex_lock(&pacific_rt5659_priv.mutex);
 
 	if (rt5659_check_jd_status(codec) && !pacific_rt5659_priv.jd_status) {
 		pacific_rt5659_priv.jd_status = true;
@@ -176,6 +180,8 @@ int rt5659_jack_status_check(void)
 		rt5659_get_jack_type(codec, 0);
 		switch_set_state(&rt5659_headset_switch, 0);
 	}
+
+	mutex_unlock(&pacific_rt5659_priv.mutex);
 
 	return report;
 }
@@ -678,6 +684,7 @@ static int pacific_late_probe(struct snd_soc_card *card)
 
 	setup_timer(&priv->jd_check_timer, jd_check_callback, 0);
 	INIT_WORK(&priv->jd_check_work, jd_check_handler);
+	mutex_init(&priv->mutex);
 
 	if (gpio_is_valid(priv->rt5659_hp_jack_gpio.gpio)) {
 		snd_soc_jack_new(codec, "Headphone Jack", SND_JACK_HEADPHONE,
