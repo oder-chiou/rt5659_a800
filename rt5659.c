@@ -3923,8 +3923,8 @@ static const struct snd_soc_dapm_route rt5659_dapm_routes[] = {
 	{ "DAC1 MIXR", "Stereo ADC Switch", "Stereo1 ADC Volume R" },
 	{ "DAC1 MIXR", "DAC1 Switch", "DAC R1 Mux" },
 
-	{ "DAC_REF", NULL, "DAC L1" },
-	{ "DAC_REF", NULL, "DAC R1" },
+	{ "DAC_REF", NULL, "DAC1 MIXL" },
+	{ "DAC_REF", NULL, "DAC1 MIXR" },
 
 	{ "DAC L2 Mux", "IF1 DAC2", "IF1 DAC2 L" },
 	{ "DAC L2 Mux", "IF2 DAC", "IF2 DAC L" },
