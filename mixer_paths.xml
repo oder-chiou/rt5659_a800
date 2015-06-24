@@ -120,6 +120,7 @@
 
 		<path name="media-headset">
 			<ctl name="Headphone Control" value="Enable"/>
+			<ctl name="HP Playback Volume" value="24"/>
 			<ctl name="Stereo DAC MIXL DAC R1 Switch" value="1"/>
 			<ctl name="Stereo DAC MIXR DAC L1 Switch" value="1"/>
 			<ctl name="HPO L Playback Switch" value="1"/>
