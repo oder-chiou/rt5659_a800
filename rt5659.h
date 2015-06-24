@@ -1789,6 +1789,7 @@ struct rt5659_priv {
 	int dmic_en;
 	bool do_impedance_sensing;
 	bool dac1_en, dac2_en;
+	bool hp_en;
 	unsigned int impedance_value;
 
 	unsigned int adb_reg_addr[0x100];

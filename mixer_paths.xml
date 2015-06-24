@@ -67,6 +67,7 @@
 	<ctl name="AD STO1 Clk Sel" value="clk_sysy_div_out"/>
 
 	<ctl name="HP Switch" value="0"/>
+	<ctl name="Headphone Control" value="Disable"/>
 	<ctl name="SPK Switch" value="0"/>
 	<ctl name="RCV Switch" value="0"/>
 	<ctl name="Main Mic Switch" value="0"/>
@@ -118,6 +119,7 @@
 		</path>
 
 		<path name="media-headset">
+			<ctl name="Headphone Control" value="Enable"/>
 			<ctl name="Stereo DAC MIXL DAC R1 Switch" value="1"/>
 			<ctl name="Stereo DAC MIXR DAC L1 Switch" value="1"/>
 			<ctl name="HPO L Playback Switch" value="1"/>
@@ -331,13 +333,14 @@
 		</path>
 
 		<path name="incall_nb-headset">
+			<ctl name="Headphone Control" value="Enable"/>
 			<ctl name="DA MONOL Clk Sel" value="clk_i2s2_track"/>
 			<ctl name="DAC L2 Mux" value="IF2 DAC"/>
 			<ctl name="Stereo DAC MIXL DAC L2 Switch" value="1"/>
 			<ctl name="Stereo DAC MIXR DAC L2 Switch" value="1"/>
 			<ctl name="HPO L Playback Switch" value="1"/>
 			<ctl name="HPO R Playback Switch" value="1"/>
-			<ctl name="HP Switch" value="1" />
+			<path name="media-headset" />
 			<!-- Record -->
 			<ctl name="Mono DAC MIXL DAC L2 Switch" value="1"/>
 			<ctl name="Mono DAC MIXR DAC L2 Switch" value="1"/>
@@ -346,7 +349,6 @@
 			<ctl name="Stereo1 ADC2 Source" value="DAC MIX"/>
 			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="1"/>
 			<ctl name="Stereo1 ADC MIXR ADC2 Switch" value="1"/>
-			<path name="media-headset" />
 		</path>
 
 		<path name="incall_nb-headphone">

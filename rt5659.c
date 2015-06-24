@@ -1766,6 +1766,38 @@ static int rt5659_jack_type_put(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
+static const char *rt5659_mode[] = {
+	"Disable", "Enable"
+};
+
+static const SOC_ENUM_SINGLE_DECL(rt5659_headphone_enum, 0, 0,
+	rt5659_mode);
+
+static int rt5659_headphone_control_get(struct snd_kcontrol *kcontrol,
+		struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
+	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
+
+	ucontrol->value.integer.value[0] = rt5659->hp_en;
+
+	return 0;
+}
+
+static int rt5659_headphone_control_put(struct snd_kcontrol *kcontrol,
+		struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
+	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
+
+	rt5659->hp_en = ucontrol->value.integer.value[0];
+
+	if (!rt5659->hp_en)
+		snd_soc_write(codec, RT5659_DEPOP_1, 0x0000);
+
+	return 0;
+}
+
 static const struct snd_kcontrol_new rt5659_snd_controls[] = {
 	/* Speaker Output Volume */
 	SOC_DOUBLE_TLV("Speaker Playback Volume", RT5659_SPO_VOL,
@@ -1868,6 +1900,8 @@ static const struct snd_kcontrol_new rt5659_snd_controls[] = {
 		rt5659_push_btn_get, rt5659_push_btn_put),
 	SOC_ENUM_EXT("jack type", rt5659_jack_type_enum,
 		rt5659_jack_type_get, rt5659_jack_type_put),
+	SOC_ENUM_EXT("Headphone Control", rt5659_jack_type_enum,
+		rt5659_headphone_control_get, rt5659_headphone_control_put),
 };
 
 /**
