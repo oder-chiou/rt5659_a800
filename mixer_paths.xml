@@ -107,15 +107,9 @@
 		</path>
 
 		<path name="media-speaker">
-			<ctl name="Mono DAC MIXL DAC L1 Switch" value="1"/>
-			<ctl name="Mono DAC MIXR DAC R1 Switch" value="1"/>
-			<ctl name="Mono ADC L1 Mux" value="Mono DAC MIXL"/>
-			<ctl name="Mono ADC R1 Mux" value="Mono DAC MIXR"/>
-			<ctl name="Mono ADC MIXL ADC1 Switch" value="1"/>
-			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
-			<ctl name="AD MONOL Clk Sel" value="clk_i2s3_track"/>
-			<ctl name="AD MONOR Clk Sel" value="clk_i2s3_track"/>
-			<ctl name="IF3 ADC Mux" value="IF_ADC2"/>
+			<ctl name="DAC L1 Source" value="DAC"/>
+			<ctl name="DAC R1 Source" value="DAC"/>
+			<ctl name="IF3 ADC Mux" value="DAC_REF"/>
 		</path>
 
 		<path name="media-headset">
@@ -640,10 +634,20 @@
 			<ctl name="Stereo1 ADC2 Source" value="DAC MIX"/>
 			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="1"/>
 			<ctl name="Stereo1 ADC MIXR ADC2 Switch" value="1"/>
-			<path name="media-speaker" />
+			<!-- Mix System Sound -->
+			<ctl name="Mono DAC MIXL DAC L1 Switch" value="1"/>
+			<ctl name="Mono DAC MIXR DAC R1 Switch" value="1"/>
+			<ctl name="Mono ADC L1 Mux" value="Mono DAC MIXL"/>
+			<ctl name="Mono ADC R1 Mux" value="Mono DAC MIXR"/>
+			<ctl name="Mono ADC MIXL ADC1 Switch" value="1"/>
+			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
+			<ctl name="AD MONOL Clk Sel" value="clk_i2s3_track"/>
+			<ctl name="AD MONOR Clk Sel" value="clk_i2s3_track"/>
+			<ctl name="IF3 ADC Mux" value="IF_ADC2"/>
 		</path>
 
 		<path name="fm_radio-headset">
+			<ctl name="Headphone Control" value="Enable"/>
 			<ctl name="DAC L2 Mux" value="IF3 DAC"/>
 			<ctl name="DAC R2 Mux" value="IF3 DAC"/>
 			<ctl name="DA MONOL Clk Sel" value="clk_i2s3_track"/>
@@ -652,7 +656,6 @@
 			<ctl name="Stereo DAC MIXR DAC R2 Switch" value="1"/>
 			<ctl name="HPO L Playback Switch" value="1"/>
 			<ctl name="HPO R Playback Switch" value="1"/>
-			<ctl name="HP Switch" value="1" />
 			<!-- Record -->
 			<ctl name="Mono DAC MIXL DAC L2 Switch" value="1"/>
 			<ctl name="Mono DAC MIXR DAC R2 Switch" value="1"/>
