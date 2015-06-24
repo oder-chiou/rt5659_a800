@@ -40,7 +40,7 @@
 #include "../codecs/rt5659.h"
 
 /* Define For Test */
-#define CONFIG_SEC_FACTORY
+//#define CONFIG_SEC_FACTORY
 
 /* PACIFIC use CLKOUT from AP */
 #define PACIFIC_MCLK_FREQ	24000000
