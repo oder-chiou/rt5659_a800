@@ -644,6 +644,7 @@
 		</path>
 
 		<path name="fm_radio-headset">
+			<ctl name="Headphone Control" value="Enable"/>
 			<ctl name="DAC L2 Mux" value="IF3 DAC"/>
 			<ctl name="DAC R2 Mux" value="IF3 DAC"/>
 			<ctl name="DA MONOL Clk Sel" value="clk_i2s3_track"/>
@@ -652,7 +653,6 @@
 			<ctl name="Stereo DAC MIXR DAC R2 Switch" value="1"/>
 			<ctl name="HPO L Playback Switch" value="1"/>
 			<ctl name="HPO R Playback Switch" value="1"/>
-			<ctl name="HP Switch" value="1" />
 			<!-- Record -->
 			<ctl name="Mono DAC MIXL DAC L2 Switch" value="1"/>
 			<ctl name="Mono DAC MIXR DAC R2 Switch" value="1"/>
