@@ -39,9 +39,6 @@
 #include "i2s-regs.h"
 #include "../codecs/rt5659.h"
 
-/* Define For Test */
-//#define CONFIG_SEC_FACTORY
-
 /* PACIFIC use CLKOUT from AP */
 #define PACIFIC_MCLK_FREQ	24000000
 
@@ -64,9 +61,6 @@ struct rt5659_machine_priv {
 	bool earmic_enabled;
 #endif
 	struct mutex mutex;
-#if defined(CONFIG_SEC_FACTORY)
-	int push_value;
-#endif
 };
 
 static struct rt5659_machine_priv pacific_rt5659_priv = {
@@ -113,25 +107,11 @@ static struct notifier_block rt5659_jack_detect_nb = {
 */
 #endif
 
-#if defined(CONFIG_SEC_FACTORY)
-static ssize_t rt5659_push_value_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
-{
-	snprintf(buf, 4, "%02d\n", pacific_rt5659_priv.push_value);
-
-	return 4;
-}
-static DEVICE_ATTR(push_value, 0664, rt5659_push_value_show, NULL);
-#endif
-
 int rt5659_jack_status_check(void)
 {
 	struct snd_soc_codec *codec = pacific_rt5659_priv.codec;
 #ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
 	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
-#endif
-#if defined(CONFIG_SEC_FACTORY)
-	int i;
 #endif
 	int report = 0, ret;
 
@@ -153,24 +133,6 @@ int rt5659_jack_status_check(void)
 		if (!pacific_rt5659_priv.earmic_enabled)
 			rt5659_dynamic_control_micbias(MIC_BIAS_V2P70V);
 #endif
-#if defined(CONFIG_SEC_FACTORY)
-		snd_soc_update_bits(codec, RT5659_GPIO_CTRL_2 , 0x0006, 0x0006);
-		snd_soc_update_bits(codec, RT5659_GPIO_CTRL_1 , 0x8000, 0x0000);
-
-		for (i = 0xe; i >= 0x0; i--) {
-			snd_soc_update_bits(codec, RT5659_IL_CMD_3, 0xf000,
-				i << 0xc);
-			msleep(10);
-			if (!(snd_soc_read(codec, RT5659_JD_CTRL_3) & 0x1000))
-				break;
-		}
-
-		pacific_rt5659_priv.push_value = i;
-		snd_soc_update_bits(codec, RT5659_IL_CMD_3, 0xf000, 0xf000);
-		snd_soc_update_bits(codec, RT5659_GPIO_CTRL_1 , 0x8000, 0x8000);
-
-		report |= SND_JACK_HEADSET;
-#else
 		switch (rt5659_button_detect(codec)) {
 		case 0x8000:
 		case 0x4000:
@@ -210,7 +172,6 @@ int rt5659_jack_status_check(void)
 			mod_timer(&pacific_rt5659_priv.jd_check_timer, jiffies);
 		else
 			del_timer(&pacific_rt5659_priv.jd_check_timer);
-#endif
 	} else {
 		if (pacific_rt5659_priv.jd_status)
 			printk("%s: Jack removed\n", __func__);
@@ -688,16 +649,6 @@ static int pacific_late_probe(struct snd_soc_card *card)
 	struct snd_soc_jack *jack = &priv->rt5659_hp_jack;
 	int ret;
 
-#if defined(CONFIG_SEC_FACTORY)
-	snd_soc_update_bits(codec, RT5659_IL_CMD_3, 0xf000, 0xf000);
-
-	ret = device_create_file(codec->dev, &dev_attr_push_value);
-	if (ret != 0) {
-		dev_err(codec->dev,
-			"Failed to create push_value sysfs files: %d\n", ret);
-		return ret;
-	}
-#endif
 	priv->codec = codec;
 	priv->jd_status = false;
 
