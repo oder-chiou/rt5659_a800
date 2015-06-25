@@ -1506,7 +1506,6 @@ EXPORT_SYMBOL(rt5659_check_jd_status);
 
 int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 {
-	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
 	unsigned int i, regdd, headset = 0;
 
 	if (action) {
@@ -4371,6 +4370,20 @@ static int rt5659_pll_calc(const unsigned int freq_in,
 	pr_debug("Only get approximation about PLL\n");
 
 code_find:
+	/*
+	 * This is temporary fix due to "rt5659_pll_calc" has a bug.
+	 * When freq_out set to 24.576kHz,
+	 * "rt5659_pll_calc"s calculated value makes freq_out 24.6kHz.
+	 * So we apply hard coeded value for make freq_out 24.571kHz.
+	 * This code will be deleted after receive Realtek official patch.
+	 * (Official patch should be makes freq_out to 24.576kHz.)
+	 */
+	if (freq_in == 24000000 && freq_out == 24576000) {
+		bypass = false;
+		m = 12;
+		n = 41;
+		k = 1;
+	}
 
 	pll_code->m_bp = bypass;
 	pll_code->m_code = m;
