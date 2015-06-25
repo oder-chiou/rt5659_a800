@@ -1764,6 +1764,12 @@ struct rt5659_pll_code {
 	int k_code;
 };
 
+struct rt5659_cal_data {
+	unsigned short hp_cal_l[0x20];
+	unsigned short hp_cal_r[0x20];
+	unsigned short mono_cal[0xd];
+};
+
 struct rt5659_priv {
 	struct snd_soc_codec *codec;
 	struct rt5659_platform_data pdata;
@@ -1805,5 +1811,7 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action);
 #ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
 void rt5659_dynamic_control_micbias(int micb_out_val);
 #endif
+int rt5659_cal_data_read(struct rt5659_cal_data *cal_data);
+int rt5659_cal_data_write(struct rt5659_cal_data *cal_data);
 
 #endif /* __RT5659_H__ */
