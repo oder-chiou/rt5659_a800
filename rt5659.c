@@ -1982,6 +1982,17 @@ static int rt5659_mono_adcr_control_put(struct snd_kcontrol *kcontrol,
 }
 
 static const struct snd_kcontrol_new rt5659_snd_controls[] = {
+	SOC_ENUM_EXT("Headphone Control", rt5659_headphone_enum,
+		rt5659_headphone_control_get, rt5659_headphone_control_put),
+	SOC_ENUM_EXT("Receiver Control", rt5659_headphone_enum,
+		rt5659_receiver_control_get, rt5659_receiver_control_put),
+	SOC_ENUM_EXT("Stereo ADC Control", rt5659_headphone_enum,
+		rt5659_sto_adc_control_get, rt5659_sto_adc_control_put),
+	SOC_ENUM_EXT("Mono ADC L Control", rt5659_headphone_enum,
+		rt5659_mono_adcl_control_get, rt5659_mono_adcl_control_put),
+	SOC_ENUM_EXT("Mono ADC R Control", rt5659_headphone_enum,
+		rt5659_mono_adcr_control_get, rt5659_mono_adcr_control_put),
+
 	/* Speaker Output Volume */
 	SOC_DOUBLE_TLV("Speaker Playback Volume", RT5659_SPO_VOL,
 		RT5659_L_VOL_SFT, RT5659_R_VOL_SFT, 39, 1, out_vol_tlv),
@@ -2083,17 +2094,6 @@ static const struct snd_kcontrol_new rt5659_snd_controls[] = {
 		rt5659_push_btn_get, rt5659_push_btn_put),
 	SOC_ENUM_EXT("jack type", rt5659_jack_type_enum,
 		rt5659_jack_type_get, rt5659_jack_type_put),
-
-	SOC_ENUM_EXT("Headphone Control", rt5659_headphone_enum,
-		rt5659_headphone_control_get, rt5659_headphone_control_put),
-	SOC_ENUM_EXT("Receiver Control", rt5659_headphone_enum,
-		rt5659_receiver_control_get, rt5659_receiver_control_put),
-	SOC_ENUM_EXT("Stereo ADC Control", rt5659_headphone_enum,
-		rt5659_sto_adc_control_get, rt5659_sto_adc_control_put),
-	SOC_ENUM_EXT("Mono ADC L Control", rt5659_headphone_enum,
-		rt5659_mono_adcl_control_get, rt5659_mono_adcl_control_put),
-	SOC_ENUM_EXT("Mono ADC R Control", rt5659_headphone_enum,
-		rt5659_mono_adcr_control_get, rt5659_mono_adcr_control_put),
 };
 
 /**
