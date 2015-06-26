@@ -46,7 +46,7 @@ static int adc_power_delay = 0;
 #endif
 module_param(adc_power_delay, int, 0644);
 
-static struct snd_soc_codec *rt5659_codec;
+struct regmap *rt5659_regmap;
 
 #define VERSION "0.4 alsa 1.0.25"
 #define VDD_CODEC_1P8 "vdd_codec_1p8_ap"
@@ -1587,44 +1587,49 @@ EXPORT_SYMBOL(rt5659_get_jack_type);
 
 int rt5659_cal_data_read(struct rt5659_cal_data *cal_data)
 {
-	struct snd_soc_codec *codec = rt5659_codec;
 	unsigned short i, cal_offset_msb, cal_offset_lsb;
 
-	snd_soc_update_bits(codec, RT5659_STO_DRE_CTRL_1, 0x8000, 0x0000);
+	regmap_update_bits(rt5659_regmap, RT5659_STO_DRE_CTRL_1, 0x8000,
+		0x0000);
 
 	for (i = 0; i < 0x20; i++) {
-		snd_soc_update_bits(codec, RT5659_HPL_GAIN, RT5659_G_HP,
+		regmap_update_bits(rt5659_regmap, RT5659_HPL_GAIN, RT5659_G_HP,
 			i << RT5659_G_HP_SFT);
-		cal_offset_msb = snd_soc_read(codec, RT5659_HP_CALIB_STA_6);
-		cal_offset_lsb = snd_soc_read(codec, RT5659_HP_CALIB_STA_7);
+		regmap_read(rt5659_regmap, RT5659_HP_CALIB_STA_6,
+			&cal_offset_msb);
+		regmap_read(rt5659_regmap, RT5659_HP_CALIB_STA_7,
+			&cal_offset_lsb);
 		cal_data->hp_cal_l[i] = (cal_offset_msb << 14) |
 			(cal_offset_lsb >> 2);
 	}
-	snd_soc_update_bits(codec, RT5659_HPL_GAIN, RT5659_G_HP, 0);
+	regmap_update_bits(rt5659_regmap, RT5659_HPL_GAIN, RT5659_G_HP, 0);
 
 	for (i = 0; i < 0x20; i++) {
-		snd_soc_update_bits(codec, RT5659_HPR_GAIN, RT5659_G_HP,
+		regmap_update_bits(rt5659_regmap, RT5659_HPR_GAIN, RT5659_G_HP,
 			i << RT5659_G_HP_SFT);
-		cal_offset_msb = snd_soc_read(codec, RT5659_HP_CALIB_STA_8);
-		cal_offset_lsb = snd_soc_read(codec, RT5659_HP_CALIB_STA_9);
+		regmap_read(rt5659_regmap, RT5659_HP_CALIB_STA_8,
+			&cal_offset_msb);
+		regmap_read(rt5659_regmap, RT5659_HP_CALIB_STA_9,
+			&cal_offset_lsb);
 		cal_data->hp_cal_r[i] = (cal_offset_msb << 14) |
 			(cal_offset_lsb >> 2);
 	}
-	snd_soc_update_bits(codec, RT5659_HPR_GAIN, RT5659_G_HP, 0);
+	regmap_update_bits(rt5659_regmap, RT5659_HPR_GAIN, RT5659_G_HP, 0);
 	
-	snd_soc_update_bits(codec, RT5659_MONO_DRE_CTRL_1, 0x8000, 0x0000);
+	regmap_update_bits(rt5659_regmap, RT5659_MONO_DRE_CTRL_1, 0x8000,
+		0x0000);
 
 	for (i = 0; i < 0xd; i++) {
-		snd_soc_update_bits(codec, RT5659_MONO_GAIN, RT5659_G_HP,
+		regmap_update_bits(rt5659_regmap, RT5659_MONO_GAIN, RT5659_G_HP,
 			i << RT5659_G_HP_SFT);
-		cal_offset_msb = snd_soc_read(codec,
-			RT5659_MONO_AMP_CALIB_STA_3);
-		cal_offset_lsb = snd_soc_read(codec,
-			RT5659_MONO_AMP_CALIB_STA_4);
+		regmap_read(rt5659_regmap, RT5659_MONO_AMP_CALIB_STA_3,
+			&cal_offset_msb);
+		regmap_read(rt5659_regmap, RT5659_MONO_AMP_CALIB_STA_4,
+			&cal_offset_lsb);
 		cal_data->mono_cal[i] = (cal_offset_msb << 14) |
 			(cal_offset_lsb >> 2);
 	}
-	snd_soc_update_bits(codec, RT5659_MONO_GAIN, RT5659_G_HP, 0);
+	regmap_update_bits(rt5659_regmap, RT5659_MONO_GAIN, RT5659_G_HP, 0);
 
 	return 0;
 }
@@ -1632,25 +1637,26 @@ EXPORT_SYMBOL(rt5659_cal_data_read);
 
 int rt5659_cal_data_write(struct rt5659_cal_data *cal_data)
 {
-	struct snd_soc_codec *codec = rt5659_codec;
 	unsigned short i;
 
 	for (i = 0; i < 0x20; i++) {
-		snd_soc_write(codec, RT5659_HP_CALIB_CTRL_10,
+		regmap_write(rt5659_regmap, RT5659_HP_CALIB_CTRL_10,
 			cal_data->hp_cal_l[i]);
-		snd_soc_write(codec, RT5659_HP_CALIB_CTRL_11,
+		regmap_write(rt5659_regmap, RT5659_HP_CALIB_CTRL_11,
 			cal_data->hp_cal_r[i]);
-		snd_soc_write(codec, RT5659_HP_CALIB_CTRL_9,
+		regmap_write(rt5659_regmap, RT5659_HP_CALIB_CTRL_9,
 			0x8000 | i << 8 | i);
 	}
-	snd_soc_update_bits(codec, RT5659_HP_CALIB_CTRL_1, 0x0010, 0x0010);
+	regmap_update_bits(rt5659_regmap, RT5659_HP_CALIB_CTRL_1, 0x0010,
+		0x0010);
 
 	for (i = 0; i < 0xd; i++) {
-		snd_soc_write(codec, RT5659_MONO_AMP_CALIB_CTRL_4,
+		regmap_write(rt5659_regmap, RT5659_MONO_AMP_CALIB_CTRL_4,
 			cal_data->mono_cal[i]);
-		snd_soc_write(codec, RT5659_MONO_AMP_CALIB_CTRL_3, 0x8000 | i);
+		regmap_write(rt5659_regmap, RT5659_MONO_AMP_CALIB_CTRL_3,
+			0x8000 | i);
 	}
-	snd_soc_update_bits(codec, RT5659_MONO_AMP_CALIB_CTRL_1, 0x0008,
+	regmap_update_bits(rt5659_regmap, RT5659_MONO_AMP_CALIB_CTRL_1, 0x0008,
 		0x0008);
 
 	return 0;
@@ -4954,7 +4960,6 @@ static int rt5659_probe(struct snd_soc_codec *codec)
 	pr_debug("%s\n", __func__);
 
 	rt5659->codec = codec;
-	rt5659_codec = codec;
 #ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
 	registered_codec = codec;
 #endif
@@ -5444,6 +5449,8 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 			ret);
 		return ret;
 	}
+
+	rt5659_regmap = rt5659->regmap;
 
 	regmap_read(rt5659->regmap, RT5659_DEVICE_ID, &val);
 	if (val != DEVICE_ID) {
