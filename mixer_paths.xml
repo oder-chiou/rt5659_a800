@@ -67,12 +67,17 @@
 	<ctl name="AD STO1 Clk Sel" value="clk_sysy_div_out"/>
 
 	<ctl name="HP Switch" value="0"/>
-	<ctl name="Headphone Control" value="Disable"/>
 	<ctl name="SPK Switch" value="0"/>
 	<ctl name="RCV Switch" value="0"/>
 	<ctl name="Main Mic Switch" value="0"/>
 	<ctl name="Sub Mic Switch" value="0"/>
 	<ctl name="Headset Mic Switch" value="0"/>
+
+	<ctl name="Headphone Control" value="Disable"/>
+	<ctl name="Receiver Control" value="Disable"/>
+	<ctl name="Stereo ADC Control" value="Disable"/>
+	<ctl name="Mono ADC L Control" value="Disable"/>
+	<ctl name="Mono ADC R Control" value="Disable"/>
 	<!-- TODO other defaults -->
 
 	<path name="capture_channel_left">
@@ -107,14 +112,11 @@
 		</path>
 
 		<path name="media-speaker">
-			<ctl name="DAC L1 Source" value="DAC"/>
-			<ctl name="DAC R1 Source" value="DAC"/>
 			<ctl name="IF3 ADC Mux" value="DAC_REF"/>
 		</path>
 
 		<path name="media-headset">
-			<ctl name="Headphone Control" value="Enable"/>
-			<ctl name="HP Playback Volume" value="24"/>
+			<ctl name="HP Playback Volume" value="25"/>
 			<ctl name="Stereo DAC MIXL DAC R1 Switch" value="1"/>
 			<ctl name="Stereo DAC MIXR DAC L1 Switch" value="1"/>
 			<ctl name="HPO L Playback Switch" value="1"/>
@@ -128,12 +130,12 @@
 		</path>
 
 		<path name="media-bt-sco-headset">
+			<ctl name="AD MONOL Clk Sel" value="clk_i2s3_track"/>
+			<ctl name="IF3 ADC Mux" value="IF_ADC2"/>
 			<ctl name="Mono DAC MIXL DAC L1 Switch" value="1"/>
 			<ctl name="Mono DAC MIXL DAC R1 Switch" value="1"/>
 			<ctl name="Mono ADC L1 Mux" value="Mono DAC MIXL"/>
 			<ctl name="Mono ADC MIXL ADC1 Switch" value="1"/>
-			<ctl name="AD MONOL Clk Sel" value="clk_i2s3_track"/>
-			<ctl name="IF3 ADC Mux" value="IF_ADC2"/>
 		</path>
 
 		<path name="media-speaker-bt-sco-headset">
@@ -292,12 +294,14 @@
 		<!-- CP Call Output -->
 		<!-- NB -->
 		<path name="incall_nb-handset">
+			<ctl name="HP Switch" value="0"/>
+			<ctl name="Receiver Control" value="Enable"/>
 			<ctl name="DA MONOL Clk Sel" value="clk_i2s2_track"/>
 			<ctl name="DAC L2 Mux" value="IF2 DAC"/>
 			<ctl name="Mono DAC MIXL DAC L2 Switch" value="1"/>
 			<ctl name="Mono MIX DAC L2 Switch" value="1"/>
 			<ctl name="Mono Playback Switch" value="1"/>
-			<ctl name="RCV Switch" value="1" />
+			<path name="media-handset" />
 			<!-- Record -->
 			<ctl name="Stereo DAC MIXL DAC L2 Switch" value="1"/>
 			<ctl name="Stereo DAC MIXR DAC L2 Switch" value="1"/>
@@ -306,28 +310,30 @@
 			<ctl name="Stereo1 ADC2 Source" value="DAC MIX"/>
 			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="1"/>
 			<ctl name="Stereo1 ADC MIXR ADC2 Switch" value="1"/>
-			<path name="media-handset" />
 		</path>
 
 		<path name="incall_nb-speaker">
+			<ctl name="HP Switch" value="0"/>
+			<ctl name="RCV Switch" value="0"/>
+			<ctl name="DA MONOL Clk Sel" value="clk_i2s2_track"/>
+			<ctl name="AD MONOL Clk Sel" value="clk_i2s3_track"/>
 			<ctl name="DAC L2 Mux" value="IF2 DAC"/>
+			<ctl name="IF3 ADC Mux" value="IF_ADC2"/>
+			<ctl name="ADC IF3 Data Switch" value="L/L"/>
 			<ctl name="Mono DAC MIXL DAC L2 Switch" value="1"/>
 			<ctl name="Mono ADC L1 Mux" value="Mono DAC MIXL"/>
 			<ctl name="Mono ADC MIXL ADC1 Switch" value="1"/>
-			<ctl name="IF3 ADC Mux" value="IF_ADC2"/>
-			<ctl name="ADC IF3 Data Switch" value="L/L"/>
-			<ctl name="DA MONOL Clk Sel" value="clk_i2s2_track"/>
-			<ctl name="AD MONOL Clk Sel" value="clk_i2s3_track"/>
+			<path name="media-bt-sco-headset" />
 			<!-- Record -->
+			<ctl name="TDM Data Mux" value="AD2:AD1:DAC:NUL"/>
+			<ctl name="ADC IF1 2/3 Data Switch" value="R/R"/>
 			<ctl name="Mono DAC MIXR DAC L2 Switch" value="1"/>
 			<ctl name="Mono ADC R2 Mux" value="Mono DAC MIXR"/>
 			<ctl name="Mono ADC MIXR ADC2 Switch" value="1"/>
-			<ctl name="TDM Data Mux" value="AD2:AD1:DAC:NUL"/>
-			<ctl name="ADC IF1 2/3 Data Switch" value="R/R"/>
-			<path name="media-bt-sco-headset" />
 		</path>
 
 		<path name="incall_nb-headset">
+			<ctl name="RCV Switch" value="0"/>
 			<ctl name="Headphone Control" value="Enable"/>
 			<ctl name="DA MONOL Clk Sel" value="clk_i2s2_track"/>
 			<ctl name="DAC L2 Mux" value="IF2 DAC"/>
@@ -335,7 +341,9 @@
 			<ctl name="Stereo DAC MIXR DAC L2 Switch" value="1"/>
 			<ctl name="HPO L Playback Switch" value="1"/>
 			<ctl name="HPO R Playback Switch" value="1"/>
+			<path name="media-headset" />
 			<!-- Record -->
+			<ctl name="TDM Data Mux" value="AD1:AD2:DAC:NUL"/>
 			<ctl name="Mono DAC MIXL DAC L2 Switch" value="1"/>
 			<ctl name="Mono DAC MIXR DAC L2 Switch" value="1"/>
 			<ctl name="DAC MIXL Mux" value="Mono DAC Mixer"/>
@@ -343,7 +351,6 @@
 			<ctl name="Stereo1 ADC2 Source" value="DAC MIX"/>
 			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="1"/>
 			<ctl name="Stereo1 ADC MIXR ADC2 Switch" value="1"/>
-			<path name="media-headset" />
 		</path>
 
 		<path name="incall_nb-headphone">
@@ -351,18 +358,18 @@
 		</path>
 
 		<path name="incall_nb-bt-sco-headset">
+			<ctl name="DA MONOL Clk Sel" value="clk_i2s2_track"/>
+			<ctl name="AD MONOL Clk Sel" value="clk_i2s3_track"/>
 			<ctl name="DAC L2 Mux" value="IF2 DAC"/>
+			<ctl name="IF3 ADC Mux" value="IF_ADC2"/>
+			<ctl name="ADC IF3 Data Switch" value="L/L"/>
 			<ctl name="Mono DAC MIXL DAC L2 Switch" value="1"/>
 			<ctl name="Mono ADC L1 Mux" value="Mono DAC MIXL"/>
 			<ctl name="Mono ADC MIXL ADC1 Switch" value="1"/>
-			<ctl name="IF3 ADC Mux" value="IF_ADC2"/>
-			<ctl name="ADC IF3 Data Switch" value="L/L"/>
-			<ctl name="DA MONOL Clk Sel" value="clk_i2s2_track"/>
-			<ctl name="AD MONOL Clk Sel" value="clk_i2s3_track"/>
+			<path name="media-bt-sco-headset" />
 			<!-- Record -->
 			<ctl name="Stereo DAC MIXL DAC L2 Switch" value="1"/>
 			<ctl name="Stereo DAC MIXR DAC L2 Switch" value="1"/>
-			<path name="media-bt-sco-headset" />
 		</path>
 
 		<!-- NB handover -->
@@ -582,14 +589,14 @@
 
 		<!-- call forwarding output -->
 		<path name="call_forwarding_master">
-			<ctl name="Mono DAC MIXL DAC L1 Switch" value="1"/>
-			<ctl name="Mono DAC MIXR DAC R1 Switch" value="1"/>
-			<ctl name="Mono ADC L1 Mux" value="Mono DAC MIXL"/>
-			<ctl name="Mono ADC R1 Mux" value="Mono DAC MIXR"/>
-			<ctl name="Mono ADC MIXL ADC1 Switch" value="1"/>
-			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
 			<ctl name="AD MONOL Clk Sel" value="clk_i2s2_track"/>
 			<ctl name="AD MONOR Clk Sel" value="clk_i2s2_track"/>
+			<ctl name="Mono DAC MIXL DAC L1 Switch" value="1"/>
+			<ctl name="Mono DAC MIXR DAC R1 Switch" value="1"/>
+			<ctl name="Mono ADC L2 Mux" value="Mono DAC MIXL"/>
+			<ctl name="Mono ADC R2 Mux" value="Mono DAC MIXR"/>
+			<ctl name="Mono ADC MIXL ADC2 Switch" value="1"/>
+			<ctl name="Mono ADC MIXR ADC2 Switch" value="1"/>
 		</path>
 
 		<path name="call_forwarding_slave-handset">
@@ -613,19 +620,22 @@
 		</path>
 
 		<path name="fm_radio-speaker">
-			<ctl name="DAC L2 Mux" value="IF3 DAC"/>
-			<ctl name="DAC R2 Mux" value="IF3 DAC"/>
-			<ctl name="DA MONOL Clk Sel" value="clk_i2s3_track"/>
-			<ctl name="DA MONOR Clk Sel" value="clk_i2s3_track"/>
-			<ctl name="Mono DAC MIXL DAC L2 Switch" value="1"/>
-			<ctl name="Mono DAC MIXR DAC R2 Switch" value="1"/>
-			<ctl name="Mono ADC L1 Mux" value="Mono DAC MIXL"/>
-			<ctl name="Mono ADC R1 Mux" value="Mono DAC MIXR"/>
-			<ctl name="Mono ADC MIXL ADC1 Switch" value="1"/>
-			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
 			<ctl name="AD MONOL Clk Sel" value="clk_i2s3_track"/>
 			<ctl name="AD MONOR Clk Sel" value="clk_i2s3_track"/>
+			<ctl name="DA MONOL Clk Sel" value="clk_i2s3_track"/>
+			<ctl name="DA MONOR Clk Sel" value="clk_i2s3_track"/>
+			<ctl name="DAC L2 Mux" value="IF3 DAC"/>
+			<ctl name="DAC R2 Mux" value="IF3 DAC"/>
 			<ctl name="IF3 ADC Mux" value="IF_ADC2"/>
+			<ctl name="Mono DAC MIXL DAC L2 Switch" value="1"/>
+			<ctl name="Mono DAC MIXR DAC R2 Switch" value="1"/>
+			<ctl name="Mono ADC L2 Mux" value="Mono DAC MIXL"/>
+			<ctl name="Mono ADC R2 Mux" value="Mono DAC MIXR"/>
+			<ctl name="Mono ADC MIXL ADC2 Switch" value="1"/>
+			<ctl name="Mono ADC MIXR ADC2 Switch" value="1"/>
+			<!-- Mix System Sound -->
+			<ctl name="Mono DAC MIXL DAC L1 Switch" value="1"/>
+			<ctl name="Mono DAC MIXR DAC R1 Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="Stereo DAC MIXL DAC L2 Switch" value="1"/>
 			<ctl name="Stereo DAC MIXR DAC R2 Switch" value="1"/>
@@ -634,20 +644,9 @@
 			<ctl name="Stereo1 ADC2 Source" value="DAC MIX"/>
 			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="1"/>
 			<ctl name="Stereo1 ADC MIXR ADC2 Switch" value="1"/>
-			<!-- Mix System Sound -->
-			<ctl name="Mono DAC MIXL DAC L1 Switch" value="1"/>
-			<ctl name="Mono DAC MIXR DAC R1 Switch" value="1"/>
-			<ctl name="Mono ADC L1 Mux" value="Mono DAC MIXL"/>
-			<ctl name="Mono ADC R1 Mux" value="Mono DAC MIXR"/>
-			<ctl name="Mono ADC MIXL ADC1 Switch" value="1"/>
-			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
-			<ctl name="AD MONOL Clk Sel" value="clk_i2s3_track"/>
-			<ctl name="AD MONOR Clk Sel" value="clk_i2s3_track"/>
-			<ctl name="IF3 ADC Mux" value="IF_ADC2"/>
 		</path>
 
 		<path name="fm_radio-headset">
-			<ctl name="Headphone Control" value="Enable"/>
 			<ctl name="DAC L2 Mux" value="IF3 DAC"/>
 			<ctl name="DAC R2 Mux" value="IF3 DAC"/>
 			<ctl name="DA MONOL Clk Sel" value="clk_i2s3_track"/>
@@ -656,16 +655,16 @@
 			<ctl name="Stereo DAC MIXR DAC R2 Switch" value="1"/>
 			<ctl name="HPO L Playback Switch" value="1"/>
 			<ctl name="HPO R Playback Switch" value="1"/>
+			<path name="media-headset" />
 			<!-- Record -->
+			<ctl name="TDM Data Mux" value="AD2:AD1:DAC:NUL"/>
+			<ctl name="ADC IF1 2/3 Data Switch" value="L/R"/>
 			<ctl name="Mono DAC MIXL DAC L2 Switch" value="1"/>
 			<ctl name="Mono DAC MIXR DAC R2 Switch" value="1"/>
 			<ctl name="Mono ADC L1 Mux" value="Mono DAC MIXL"/>
 			<ctl name="Mono ADC R1 Mux" value="Mono DAC MIXR"/>
 			<ctl name="Mono ADC MIXL ADC1 Switch" value="1"/>
 			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
-			<ctl name="TDM Data Mux" value="AD2:AD1:DAC:NUL"/>
-			<ctl name="ADC IF1 2/3 Data Switch" value="L/R"/>
-			<path name="media-headset" />
 		</path>
 
 		<!-- Input stage -->
@@ -703,10 +702,10 @@
 		</path>
 
 		<path name="media-bt-sco-headset-in">
-			<ctl name="DAC L2 Mux" value="IF3 DAC"/>
-			<ctl name="DAC R2 Mux" value="IF3 DAC"/>
 			<ctl name="DA MONOL Clk Sel" value="clk_i2s3_track"/>
 			<ctl name="DA MONOR Clk Sel" value="clk_i2s3_track"/>
+			<ctl name="DAC L2 Mux" value="IF3 DAC"/>
+			<ctl name="DAC R2 Mux" value="IF3 DAC"/>
 			<ctl name="Stereo DAC MIXL DAC L2 Switch" value="1"/>
 			<ctl name="Stereo DAC MIXR DAC R2 Switch" value="1"/>
 			<ctl name="DAC MIXL Mux" value="Stereo DAC Mixer"/>
@@ -758,9 +757,9 @@
 			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="1"/>
 			<ctl name="Main Mic Switch" value="1" />
 			<!-- Echo Ref -->
-			<ctl name="DAC IF3 Data Switch" value="L/L"/>
-			<ctl name="DAC R2 Mux" value="IF3 DAC"/>
 			<ctl name="DA MONOR Clk Sel" value="clk_i2s3_track"/>
+			<ctl name="DAC R2 Mux" value="IF3 DAC"/>
+			<ctl name="DAC IF3 Data Switch" value="L/L"/>
 			<ctl name="Stereo DAC MIXR DAC R2 Switch" value="1"/>
 			<ctl name="DAC MIXR Mux" value="Stereo DAC Mixer"/>
 			<ctl name="Stereo1 ADC2 Source" value="DAC MIX"/>
@@ -968,8 +967,24 @@
 		<!-- CP Call input -->
 		<!-- NB -->
 		<path name="incall_nb-handset-mic">
+			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXR ADC2 Switch" value="0"/>
+			<ctl name="Mono ADC MIXL ADC1 Switch" value="0"/>
+			<ctl name="Mono ADC MIXL ADC2 Switch" value="0"/>
+			<ctl name="Mono ADC MIXR ADC1 Switch" value="0"/>
+			<ctl name="Mono ADC MIXR ADC2 Switch" value="0"/>
+			<ctl name="RECMIX1R BST1 Switch" value="0"/>
+			<ctl name="RECMIX1L BST1 Switch" value="0"/>
+			<ctl name="RECMIX1R BST3 Switch" value="0"/>
+			<ctl name="RECMIX1L BST4 Switch" value="0"/>
+			<ctl name="Headset Mic Switch" value="0" />
+			<ctl name="Main Mic Switch" value="0" />
+			<ctl name="Sub Mic Switch" value="0" />
 			<ctl name="AD MONOL Clk Sel" value="clk_i2s2_track"/>
 			<ctl name="AD MONOR Clk Sel" value="clk_i2s2_track"/>
+			<ctl name="IF2 ADC Mux" value="IF_ADC2"/>
 			<ctl name="RECMIX1L BST4 Switch" value="1"/>
 			<ctl name="RECMIX1R BST3 Switch" value="1"/>
 			<ctl name="Mono ADC L Mux" value="ADC1 L"/>
@@ -988,7 +1003,23 @@
 		</path>
 
 		<path name="incall_nb-speaker-mic">
+			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXR ADC2 Switch" value="0"/>
+			<ctl name="Mono ADC MIXL ADC1 Switch" value="0"/>
+			<ctl name="Mono ADC MIXL ADC2 Switch" value="0"/>
+			<ctl name="Mono ADC MIXR ADC1 Switch" value="0"/>
+			<ctl name="Mono ADC MIXR ADC2 Switch" value="0"/>
+			<ctl name="RECMIX1R BST1 Switch" value="0"/>
+			<ctl name="RECMIX1L BST1 Switch" value="0"/>
+			<ctl name="RECMIX1R BST3 Switch" value="0"/>
+			<ctl name="RECMIX1L BST4 Switch" value="0"/>
+			<ctl name="Headset Mic Switch" value="0" />
+			<ctl name="Main Mic Switch" value="0" />
+			<ctl name="Sub Mic Switch" value="0" />
 			<ctl name="AD STO1 Clk Sel" value="clk_i2s2_track"/>
+			<ctl name="IF2 ADC Mux" value="IF_ADC1"/>
 			<ctl name="RECMIX1L BST4 Switch" value="1"/>
 			<ctl name="RECMIX1R BST3 Switch" value="1"/>
 			<ctl name="Stereo1 ADC Source" value="ADC1"/>
@@ -997,7 +1028,6 @@
 			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="1"/>
 			<ctl name="Main Mic Switch" value="1" />
 			<ctl name="Sub Mic Switch" value="1" />
-			<ctl name="IF2 ADC Mux" value="IF_ADC1"/>
 			<!-- Record -->
 			<ctl name="Mono ADC R Mux" value="ADC1 L"/>
 			<ctl name="Mono ADC R1 Mux" value="ADC"/>
@@ -1005,8 +1035,24 @@
 		</path>
 
 		<path name="incall_nb-headset-mic">
+			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXR ADC2 Switch" value="0"/>
+			<ctl name="Mono ADC MIXL ADC1 Switch" value="0"/>
+			<ctl name="Mono ADC MIXL ADC2 Switch" value="0"/>
+			<ctl name="Mono ADC MIXR ADC1 Switch" value="0"/>
+			<ctl name="Mono ADC MIXR ADC2 Switch" value="0"/>
+			<ctl name="RECMIX1R BST1 Switch" value="0"/>
+			<ctl name="RECMIX1L BST1 Switch" value="0"/>
+			<ctl name="RECMIX1R BST3 Switch" value="0"/>
+			<ctl name="RECMIX1L BST4 Switch" value="0"/>
+			<ctl name="Headset Mic Switch" value="0" />
+			<ctl name="Main Mic Switch" value="0" />
+			<ctl name="Sub Mic Switch" value="0" />
 			<ctl name="AD MONOL Clk Sel" value="clk_i2s2_track"/>
 			<ctl name="AD MONOR Clk Sel" value="clk_i2s2_track"/>
+			<ctl name="IF2 ADC Mux" value="IF_ADC2"/>
 			<ctl name="RECMIX1L BST1 Switch" value="1"/>
 			<ctl name="RECMIX1R BST1 Switch" value="1"/>
 			<ctl name="Mono ADC L Mux" value="ADC1 L"/>
@@ -1024,8 +1070,24 @@
 		</path>
 
 		<path name="incall_nb-headphone-mic">
+			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXR ADC2 Switch" value="0"/>
+			<ctl name="Mono ADC MIXL ADC1 Switch" value="0"/>
+			<ctl name="Mono ADC MIXL ADC2 Switch" value="0"/>
+			<ctl name="Mono ADC MIXR ADC1 Switch" value="0"/>
+			<ctl name="Mono ADC MIXR ADC2 Switch" value="0"/>
+			<ctl name="RECMIX1R BST1 Switch" value="0"/>
+			<ctl name="RECMIX1L BST1 Switch" value="0"/>
+			<ctl name="RECMIX1R BST3 Switch" value="0"/>
+			<ctl name="RECMIX1L BST4 Switch" value="0"/>
+			<ctl name="Headset Mic Switch" value="0" />
+			<ctl name="Main Mic Switch" value="0" />
+			<ctl name="Sub Mic Switch" value="0" />
 			<ctl name="AD MONOL Clk Sel" value="clk_i2s2_track"/>
 			<ctl name="AD MONOR Clk Sel" value="clk_i2s2_track"/>
+			<ctl name="IF2 ADC Mux" value="IF_ADC2"/>
 			<ctl name="RECMIX1L BST4 Switch" value="1"/>
 			<ctl name="RECMIX1R BST3 Switch" value="1"/>
 			<ctl name="Mono ADC L Mux" value="ADC1 L"/>
@@ -1044,14 +1106,29 @@
 		</path>
 
 		<path name="incall_nb-bt-sco-headset-in">
+			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXR ADC2 Switch" value="0"/>
+			<ctl name="Mono ADC MIXL ADC1 Switch" value="0"/>
+			<ctl name="Mono ADC MIXL ADC2 Switch" value="0"/>
+			<ctl name="Mono ADC MIXR ADC1 Switch" value="0"/>
+			<ctl name="Mono ADC MIXR ADC2 Switch" value="0"/>
+			<ctl name="RECMIX1R BST1 Switch" value="0"/>
+			<ctl name="RECMIX1L BST1 Switch" value="0"/>
+			<ctl name="RECMIX1R BST3 Switch" value="0"/>
+			<ctl name="RECMIX1L BST4 Switch" value="0"/>
+			<ctl name="Headset Mic Switch" value="0" />
+			<ctl name="Main Mic Switch" value="0" />
+			<ctl name="Sub Mic Switch" value="0" />
+			<ctl name="DA MONOR Clk Sel" value="clk_i2s3_track"/>
+			<ctl name="AD MONOR Clk Sel" value="clk_i2s2_track"/>
+			<ctl name="ADC IF2 Data Switch" value="R/R"/>
 			<ctl name="DAC IF3 Data Switch" value="L/L"/>
 			<ctl name="DAC R2 Mux" value="IF3 DAC"/>
 			<ctl name="Mono DAC MIXR DAC R2 Switch" value="1"/>
 			<ctl name="Mono ADC R1 Mux" value="Mono DAC MIXR"/>
 			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
-			<ctl name="ADC IF2 Data Switch" value="R/R"/>
-			<ctl name="DA MONOR Clk Sel" value="clk_i2s3_track"/>
-			<ctl name="AD MONOR Clk Sel" value="clk_i2s2_track"/>
 			<!-- Record -->
 			<ctl name="Stereo DAC MIXL DAC R2 Switch" value="1"/>
 			<ctl name="Stereo DAC MIXR DAC R2 Switch" value="1"/>
@@ -1265,6 +1342,7 @@
 
 		<path name="loopback_packet-2nd-mic">
 			<ctl name="AD STO1 Clk Sel" value="clk_i2s2_track"/>
+			<ctl name="IF2 ADC Mux" value="IF_ADC1"/>
 			<ctl name="RECMIX1L BST3 Switch" value="1"/>
 			<ctl name="RECMIX1R BST3 Switch" value="1"/>
 			<ctl name="Stereo1 ADC Source" value="ADC1"/>
@@ -1272,7 +1350,6 @@
 			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="1"/>
 			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="1"/>
 			<ctl name="Sub Mic Switch" value="1" />
-			<ctl name="IF2 ADC Mux" value="IF_ADC1"/>
 		</path>
 
 		<path name="loopback_packet-headset-mic">
@@ -1294,6 +1371,7 @@
 
 		<path name="loopback-2nd-mic">
 			<ctl name="AD STO1 Clk Sel" value="clk_i2s2_track"/>
+			<ctl name="IF2 ADC Mux" value="IF_ADC1"/>
 			<ctl name="RECMIX1L BST3 Switch" value="1"/>
 			<ctl name="RECMIX1R BST3 Switch" value="1"/>
 			<ctl name="Stereo1 ADC Source" value="ADC1"/>
@@ -1301,7 +1379,6 @@
 			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="1"/>
 			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="1"/>
 			<ctl name="Sub Mic Switch" value="1" />
-			<ctl name="IF2 ADC Mux" value="IF_ADC1"/>
 		</path>
 
 		<!-- TTY Mode Input -->
@@ -1338,10 +1415,10 @@
 
 		<!-- call forwarding input -->
 		<path name="call_forwarding_master-mic">
-			<ctl name="DAC L2 Mux" value="IF2 DAC"/>
-			<ctl name="DAC R2 Mux" value="IF2 DAC"/>
 			<ctl name="DA MONOL Clk Sel" value="clk_i2s2_track"/>
 			<ctl name="DA MONOR Clk Sel" value="clk_i2s2_track"/>
+			<ctl name="DAC L2 Mux" value="IF2 DAC"/>
+			<ctl name="DAC R2 Mux" value="IF2 DAC"/>
 			<ctl name="Stereo DAC MIXL DAC L2 Switch" value="1"/>
 			<ctl name="Stereo DAC MIXR DAC R2 Switch" value="1"/>
 			<ctl name="DAC MIXL Mux" value="Stereo DAC Mixer"/>
@@ -1387,8 +1464,8 @@
 		</path>
 
 		<path name="gain-media-speaker-headset">
-			<ctl name="DAC1 Playback Volume" value="137"/>
-			<ctl name="Mono ADC Capture Volume" value="80"/>
+			<ctl name="DAC1 Playback Volume" value="116"/>
+			<ctl name="Mono ADC Capture Volume" value="100"/>
 		</path>
 
 		<path name="gain-media-bt-sco-headset">
@@ -1432,7 +1509,7 @@
 
 		<!-- Communication playback volume -->
 		<path name="gain-communication-handset">
-			<ctl name="DAC1 Playback Volume" value="173"/>
+			<ctl name="DAC1 Playback Volume" value="170"/>
 		</path>
 
 		<path name="gain-communication-speaker">
@@ -1758,7 +1835,6 @@
 		<!-- NB/HANDOVER volume -->
 		<path name="gain-incall_nb_handover-handset">
 			<ctl name="DAC2 Playback Volume" value="175"/>
-			<ctl name="Mono ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-incall_nb_handover-speaker">
@@ -2118,22 +2194,22 @@
 
 		<!-- Video call input volume -->
 		<path name="gain-video_call-handset-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-video_call-speaker-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="40"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-video_call-headset-mic">
-			<ctl name="IN1 Boost Volume" value="64"/>
+			<ctl name="IN1 Boost Volume" value="52"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
 		<path name="gain-video_call-headphone-mic">
-			<ctl name="IN4 Boost Volume" value="64"/>
+			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
 
@@ -2542,7 +2618,7 @@
 		<path name="gain-loopback-2nd-mic">
 			<ctl name="IN4 Boost Volume" value="44"/>
 			<ctl name="IN3 Boost Volume" value="44"/>
-			<ctl name="STO1 ADC Capture Volume" value="47"/>
+			<ctl name="STO1 ADC Capture Volume" value="20"/>
 		</path>
 
 		<!-- Packet Loopback Input -->
