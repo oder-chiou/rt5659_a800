@@ -5043,6 +5043,7 @@ static int rt5659_suspend(struct snd_soc_codec *codec)
 		RT5659_I2S_MS_S);
 	snd_soc_update_bits(codec, RT5659_I2S3_SDP, RT5659_I2S_MS_MASK,
 		RT5659_I2S_MS_S);
+
 	return 0;
 }
 
@@ -5050,6 +5051,11 @@ static int rt5659_resume(struct snd_soc_codec *codec)
 {
 	snd_soc_update_bits(codec, RT5659_PWR_DIG_2,
 		RT5659_PWR_DAC_MF_L, RT5659_PWR_DAC_MF_L);
+
+	if (rt5659->master[RT5659_AIF1])
+		snd_soc_update_bits(codec, RT5659_I2S1_SDP, RT5659_I2S_MS_MASK,
+			RT5659_I2S_MS_M);
+
 	return 0;
 }
 #else
@@ -5394,6 +5400,7 @@ void rt5659_calibrate(struct rt5659_priv *rt5659)
 
 static void rt5659_i2s_switch_slave_work_0(struct work_struct *work)
 {
+/*
 	struct rt5659_priv *rt5659 =
 		container_of(work, struct rt5659_priv,
 		i2s_switch_slave_work[RT5659_AIF1].work);
@@ -5401,6 +5408,7 @@ static void rt5659_i2s_switch_slave_work_0(struct work_struct *work)
 
 	snd_soc_update_bits(codec, RT5659_I2S1_SDP, RT5659_I2S_MS_MASK,
 		RT5659_I2S_MS_S);
+*/
 }
 
 static void rt5659_i2s_switch_slave_work_1(struct work_struct *work)
