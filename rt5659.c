@@ -42,7 +42,7 @@ module_param(dmic_power_delay, int, 0644);
 #if defined(CONFIG_SEC_FACTORY)
 static int adc_power_delay = 200;
 #else
-static int adc_power_delay = 50;
+static int adc_power_delay = 100;
 #endif
 module_param(adc_power_delay, int, 0644);
 
