@@ -1764,23 +1764,12 @@ struct rt5659_pll_code {
 	int k_code;
 };
 
-struct rt5659_cal_data {
-	unsigned short hp_cal_l[0x20];
-	unsigned short hp_cal_r[0x20];
-	unsigned short mono_cal[0xd];
-};
-
-#define CAL_DATA_EFS 		"/efs/.rt5659_cal.dat"
-#define EFS_CAL_BUF_SIZE 	200
-
 struct rt5659_priv {
 	struct snd_soc_codec *codec;
 	struct rt5659_platform_data pdata;
 	struct regmap *regmap;
 	struct i2c_client *i2c;
 	struct delayed_work i2s_switch_slave_work[RT5659_AIFS];
-	struct delayed_work calibrate_work;
-	struct mutex calibrate_mutex;
 
 	int aif_pu;	
 	int sysclk;
