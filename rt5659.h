@@ -1770,12 +1770,17 @@ struct rt5659_cal_data {
 	unsigned short mono_cal[0xd];
 };
 
+#define CAL_DATA_EFS 		"/efs/.rt5659_cal.dat"
+#define EFS_CAL_BUF_SIZE 	200
+
 struct rt5659_priv {
 	struct snd_soc_codec *codec;
 	struct rt5659_platform_data pdata;
 	struct regmap *regmap;
 	struct i2c_client *i2c;
 	struct delayed_work i2s_switch_slave_work[RT5659_AIFS];
+	struct delayed_work calibrate_work;
+	struct mutex calibrate_mutex;
 
 	int aif_pu;	
 	int sysclk;
@@ -1811,7 +1816,5 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action);
 #ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
 void rt5659_dynamic_control_micbias(int micb_out_val);
 #endif
-int rt5659_cal_data_read(struct rt5659_cal_data *cal_data);
-int rt5659_cal_data_write(struct rt5659_cal_data *cal_data);
 
 #endif /* __RT5659_H__ */
