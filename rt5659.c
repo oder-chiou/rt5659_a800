@@ -1477,11 +1477,27 @@ EXPORT_SYMBOL(rt5659_headset_detect);
 int rt5659_button_detect(struct snd_soc_codec *codec)
 {
 	int btn_type, val;
+	static unsigned int reg1d;
+	static bool pressed;
 
 	val = snd_soc_read(codec, RT5659_4BTN_IL_CMD_1);
 	pr_debug("%s: val=0x%x\n", __func__, val);
 	btn_type = val & 0xfff0;
 	snd_soc_write(codec, RT5659_4BTN_IL_CMD_1, val);
+
+	if (snd_soc_read(codec,RT5659_DEPOP_1) & 0x0010) {
+		if (btn_type && !pressed) {
+			reg1d = snd_soc_read(codec, RT5659_MONO_ADC_DIG_VOL);
+			snd_soc_update_bits(codec, RT5659_MONO_ADC_DIG_VOL,
+				RT5659_L_MUTE | RT5659_R_MUTE,
+				RT5659_L_MUTE | RT5659_R_MUTE);
+			pressed = true;
+		} else {
+			snd_soc_update_bits(codec, RT5659_MONO_ADC_DIG_VOL,
+				RT5659_L_MUTE | RT5659_R_MUTE, reg1d);
+			pressed = false;
+		}
+	}
 
 	return btn_type;
 }
