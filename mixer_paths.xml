@@ -967,6 +967,9 @@
 		<!-- CP Call input -->
 		<!-- NB -->
 		<path name="incall_nb-handset-mic">
+			<ctl name="Stereo ADC Control" value="Enable"/>
+			<ctl name="Mono ADC L Control" value="Enable"/>
+			<ctl name="Mono ADC R Control" value="Enable"/>
 			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="0"/>
 			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="0"/>
 			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="0"/>
@@ -993,8 +996,6 @@
 			<ctl name="Mono ADC R1 Mux" value="ADC"/>
 			<ctl name="Mono ADC MIXL ADC1 Switch" value="1"/>
 			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
-			<ctl name="Main Mic Switch" value="1" />
-			<ctl name="Sub Mic Switch" value="1" />
 			<!-- Record -->
 			<ctl name="Stereo1 ADC Source" value="ADC1"/>
 			<ctl name="Stereo1 ADC1 Source" value="ADC"/>
@@ -1003,6 +1004,9 @@
 		</path>
 
 		<path name="incall_nb-speaker-mic">
+			<ctl name="Stereo ADC Control" value="Enable"/>
+			<ctl name="Mono ADC L Control" value="Enable"/>
+			<ctl name="Mono ADC R Control" value="Enable"/>
 			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="0"/>
 			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="0"/>
 			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="0"/>
@@ -1026,8 +1030,6 @@
 			<ctl name="Stereo1 ADC1 Source" value="ADC"/>
 			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="1"/>
 			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="1"/>
-			<ctl name="Main Mic Switch" value="1" />
-			<ctl name="Sub Mic Switch" value="1" />
 			<!-- Record -->
 			<ctl name="Mono ADC R Mux" value="ADC1 L"/>
 			<ctl name="Mono ADC R1 Mux" value="ADC"/>
@@ -1035,6 +1037,9 @@
 		</path>
 
 		<path name="incall_nb-headset-mic">
+			<ctl name="Stereo ADC Control" value="Enable"/>
+			<ctl name="Mono ADC L Control" value="Enable"/>
+			<ctl name="Mono ADC R Control" value="Enable"/>
 			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="0"/>
 			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="0"/>
 			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="0"/>
@@ -1061,7 +1066,6 @@
 			<ctl name="Mono ADC R1 Mux" value="ADC"/>
 			<ctl name="Mono ADC MIXL ADC1 Switch" value="1"/>
 			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
-			<ctl name="Headset Mic Switch" value="1" />
 			<!-- Record -->
 			<ctl name="Stereo1 ADC Source" value="ADC1"/>
 			<ctl name="Stereo1 ADC1 Source" value="ADC"/>
@@ -1070,6 +1074,9 @@
 		</path>
 
 		<path name="incall_nb-headphone-mic">
+			<ctl name="Stereo ADC Control" value="Enable"/>
+			<ctl name="Mono ADC L Control" value="Enable"/>
+			<ctl name="Mono ADC R Control" value="Enable"/>
 			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="0"/>
 			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="0"/>
 			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="0"/>
@@ -1096,8 +1103,6 @@
 			<ctl name="Mono ADC R1 Mux" value="ADC"/>
 			<ctl name="Mono ADC MIXL ADC1 Switch" value="1"/>
 			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
-			<ctl name="Main Mic Switch" value="1" />
-			<ctl name="Sub Mic Switch" value="1" />
 			<!-- Record -->
 			<ctl name="Stereo1 ADC Source" value="ADC1"/>
 			<ctl name="Stereo1 ADC1 Source" value="ADC"/>
@@ -1106,6 +1111,9 @@
 		</path>
 
 		<path name="incall_nb-bt-sco-headset-in">
+			<ctl name="Stereo ADC Control" value="Enable"/>
+			<ctl name="Mono ADC L Control" value="Enable"/>
+			<ctl name="Mono ADC R Control" value="Enable"/>
 			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="0"/>
 			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="0"/>
 			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="0"/>
@@ -1128,7 +1136,6 @@
 			<ctl name="DAC R2 Mux" value="IF3 DAC"/>
 			<ctl name="Mono DAC MIXR DAC R2 Switch" value="1"/>
 			<ctl name="Mono ADC R1 Mux" value="Mono DAC MIXR"/>
-			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="Stereo DAC MIXL DAC R2 Switch" value="1"/>
 			<ctl name="Stereo DAC MIXR DAC R2 Switch" value="1"/>
@@ -1671,6 +1678,7 @@
 			<!-- L channel from CP --> <!-- R channel from BT -->
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- L channel to BT --> <!-- R channel to CP -->
+			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
 		</path>
 
 		<!-- VoLTE CP NB/EXTRA_VOL playback volume -->
@@ -1721,6 +1729,7 @@
 			<!-- L channel from CP --> <!-- R channel from BT -->
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- L channel to BT --> <!-- R channel to CP -->
+			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
 		</path>
 
 		<!-- VoLTE VT CP NB HANDOVER playback volume -->
@@ -1766,6 +1775,7 @@
 			<!-- L channel from CP --> <!-- R channel from BT -->
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- L channel to BT --> <!-- R channel to CP -->
+			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
 		</path>
 
 		<!-- VoLTE CP WB/EXTRA_VOL playback volume -->
@@ -1801,6 +1811,7 @@
 			<!-- L channel from CP --> <!-- R channel from BT -->
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- L channel to BT --> <!-- R channel to CP -->
+			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
 		</path>
 
 		<!-- CP Call Output volume -->
@@ -1830,6 +1841,7 @@
 			<!-- L channel from CP --> <!-- R channel from BT -->
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- L channel to BT --> <!-- R channel to CP -->
+			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
 		</path>
 
 		<!-- NB/HANDOVER volume -->
@@ -1897,6 +1909,7 @@
 			<!-- L channel from CP --> <!-- R channel from BT -->
 			<ctl name="Mono ADC Capture Volume" value="47"/>
 			<!-- L channel to BT --> <!-- R channel to CP -->
+			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
 		</path>
 
 		<!-- WB/EXTRA_VOL Volume-->
@@ -2275,6 +2288,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2283,11 +2298,14 @@
 			<ctl name="IN4 Boost Volume" value="40"/>
 			<ctl name="IN3 Boost Volume" value="32"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 		</path>
 
 		<path name="gain-volte_vt_cp_nb-headset-mic">
 			<ctl name="IN1 Boost Volume" value="52"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Headset Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2296,6 +2314,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2310,6 +2330,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2318,11 +2340,14 @@
 			<ctl name="IN4 Boost Volume" value="40"/>
 			<ctl name="IN3 Boost Volume" value="32"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 		</path>
 
 		<path name="gain-volte_cp_nb-headset-mic">
 			<ctl name="IN1 Boost Volume" value="52"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Headset Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2331,6 +2356,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2345,6 +2372,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2365,6 +2394,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2378,6 +2409,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2391,6 +2424,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2399,11 +2434,14 @@
 			<ctl name="IN4 Boost Volume" value="40"/>
 			<ctl name="IN3 Boost Volume" value="24"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 		</path>
 
 		<path name="gain-volte_cp_wb-headset-mic">
 			<ctl name="IN1 Boost Volume" value="40"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Headset Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2412,6 +2450,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2426,6 +2466,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2434,6 +2476,8 @@
 			<ctl name="IN4 Boost Volume" value="40"/>
 			<ctl name="IN3 Boost Volume" value="24"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 		</path>
 
 		<!-- VoLTE VT CP WB input volume -->
@@ -2441,6 +2485,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2449,11 +2495,14 @@
 			<ctl name="IN4 Boost Volume" value="40"/>
 			<ctl name="IN3 Boost Volume" value="24"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 		</path>
 
 		<path name="gain-volte_vt_cp_wb-headset-mic">
 			<ctl name="IN1 Boost Volume" value="40"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Headset Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2462,6 +2511,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2477,6 +2528,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2485,11 +2538,14 @@
 			<ctl name="IN4 Boost Volume" value="40"/>
 			<ctl name="IN3 Boost Volume" value="32"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 		</path>
 
 		<path name="gain-incall_nb-headset-mic">
 			<ctl name="IN1 Boost Volume" value="52"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Headset Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2498,6 +2554,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2512,6 +2570,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2533,6 +2593,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2541,6 +2603,8 @@
 			<ctl name="IN4 Boost Volume" value="40"/>
 			<ctl name="IN3 Boost Volume" value="32"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 		</path>
 
 		<!-- NB/EXTRA_VOL/HANDOVER volume -->
@@ -2548,6 +2612,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2556,6 +2622,8 @@
 			<ctl name="IN4 Boost Volume" value="40"/>
 			<ctl name="IN3 Boost Volume" value="32"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 		</path>
 
 		<!-- WB volume -->
@@ -2563,6 +2631,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2571,11 +2641,14 @@
 			<ctl name="IN4 Boost Volume" value="40"/>
 			<ctl name="IN3 Boost Volume" value="24"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 		</path>
 
 		<path name="gain-incall_wb-headset-mic">
 			<ctl name="IN1 Boost Volume" value="40"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Headset Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2584,6 +2657,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2598,6 +2673,8 @@
 			<ctl name="IN4 Boost Volume" value="48"/>
 			<ctl name="IN3 Boost Volume" value="48"/>
 			<ctl name="Mono ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 			<!-- Record -->
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
 		</path>
@@ -2606,6 +2683,8 @@
 			<ctl name="IN4 Boost Volume" value="40"/>
 			<ctl name="IN3 Boost Volume" value="24"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
+			<ctl name="Main Mic Switch" value="1"/>
+			<ctl name="Sub Mic Switch" value="1"/>
 		</path>
 
 		<!-- Loopback Input volume for ear-mic -->
