@@ -32,6 +32,9 @@
 
 #include "rt5659.h"
 
+#include "../../arch/arm/mach-exynos/common.h"
+void sec_debug_set_upload_magic(unsigned magic, char *str);
+
 #ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
 static struct snd_soc_codec *registered_codec;
 #endif
@@ -52,6 +55,13 @@ module_param(adc_power_delay, int, 0644);
 #define VDD_CODEC_3P3 "vdd_codec_3p3_ap"
 
 static struct reg_default init_list[] = {
+	{RT5659_BIAS_CUR_CTRL_8,	0xa502},
+	{RT5659_CHOP_DAC,		0x3030},
+	{RT5659_PRE_DIV_1,		0xef00},
+	{RT5659_PRE_DIV_2,		0xeffc},
+	{RT5659_MONO_GAIN,		0x0003},
+	{RT5659_CLASSD_0,		0x2021},
+	{RT5659_HP_CALIB_CTRL_7,	0x0000},
 	{RT5659_IN1_IN2,		0x4000}, /*Set BST1 to 36dB*/
 	{RT5659_IN3_IN4,		0xc0c0}, /*Set BST3/4 to 36dB*/
 	/* Jack detect (JD3 to IRQ)*/
@@ -1600,7 +1610,7 @@ EXPORT_SYMBOL(rt5659_get_jack_type);
 static int rt5659_cal_data_read(struct rt5659_priv *rt5659,
 	struct rt5659_cal_data *cal_data)
 {
-	unsigned short i, cal_offset_msb, cal_offset_lsb;
+	unsigned int i, cal_offset_msb, cal_offset_lsb;
 
 	regmap_update_bits(rt5659->regmap, RT5659_STO_DRE_CTRL_1, 0x8000,
 		0x0000);
@@ -5027,7 +5037,7 @@ static int rt5659_probe(struct snd_soc_codec *codec)
 		return ret;
 	}
 
-	schedule_work(&rt5659->calibrate_work);
+	schedule_delayed_work(&rt5659->calibrate_work, msecs_to_jiffies(0));
 
 	return 0;
 }
@@ -5190,9 +5200,8 @@ MODULE_DEVICE_TABLE(i2c, rt5659_i2c_id);
 
 static int rt5659_parse_dt(struct rt5659_priv *rt5659, struct device_node *np)
 {
-#ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
 	int ret = 0;
-#endif
+
 	rt5659->pdata.in1_diff = of_property_read_bool(np,
 					"realtek,in1-differential");
 	rt5659->pdata.in3_diff = of_property_read_bool(np,
@@ -5204,19 +5213,26 @@ static int rt5659_parse_dt(struct rt5659_priv *rt5659, struct device_node *np)
 		&rt5659->pdata.dmic1_data_pin);
 	of_property_read_u32(np, "realtek,dmic2_data_pin",
 		&rt5659->pdata.dmic2_data_pin);
-
-	of_property_read_u32(np, "realtek,push_button_range_def",
+#ifdef CONFIG_SEC_FACTORY
+	ret = of_property_read_u32(np, "realtek,push_button_range_def_factory",
 		&rt5659->pdata.push_button_range_def);
-
+#else
+	ret = of_property_read_u32(np, "realtek,push_button_range_def",
+		&rt5659->pdata.push_button_range_def);
+#endif
+	if (ret < 0) 
+		pr_err("%s: cannot find push_button_range_def(_factory) in the dt\n", __func__);
+	else
+		pr_info("%s: push_button_range_def - 0x%04x\n", __func__, rt5659->pdata.push_button_range_def);
 #ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
 	ret = of_property_read_u32(np, "dynamic-micbias-ctrl-voltage",
 			&rt5659->pdata.dynamic_micb_ctrl_voltage);
 	if (ret < 0) {
-		pr_err("%s : cannot find dynamic-micbias-ctrl-voltage in the dt - using default voltage (2.7V)\n",
+		pr_err("%s: cannot find dynamic-micbias-ctrl-voltage in the dt - using default voltage (2.7V)\n",
 		__func__);
 		rt5659->pdata.dynamic_micb_ctrl_voltage = MIC_BIAS_V2P70V;
 	}
-	pr_info("%s - dynamic-micbias-ctrl-voltage: %d \n", __func__, rt5659->pdata.dynamic_micb_ctrl_voltage);
+	pr_info("%s: dynamic-micbias-ctrl-voltage - %d \n", __func__, rt5659->pdata.dynamic_micb_ctrl_voltage);
 #endif
 
 	return 0;
@@ -5229,13 +5245,6 @@ void rt5659_calibrate(struct rt5659_priv *rt5659)
 	mutex_lock(&rt5659->calibrate_mutex);
 
 	/* Calibrate HPO Start */
-	/* Fine tune HP Performance */
-	regmap_write(rt5659->regmap, RT5659_BIAS_CUR_CTRL_8, 0xa502);
-	regmap_write(rt5659->regmap, RT5659_CHOP_DAC, 0x3030);
-
-	regmap_write(rt5659->regmap, RT5659_PRE_DIV_1, 0xef00);
-	regmap_write(rt5659->regmap, RT5659_PRE_DIV_2, 0xeffc);
-
 	regcache_cache_bypass(rt5659->regmap, true);
 
 	regmap_write(rt5659->regmap, RT5659_RESET, 0);
@@ -5420,10 +5429,144 @@ void rt5659_calibrate(struct rt5659_priv *rt5659)
 	regmap_write(rt5659->regmap, RT5659_MICBIAS_2, 0x0080);
 	regmap_write(rt5659->regmap, RT5659_HP_VOL, 0x8080);
 	regmap_write(rt5659->regmap, RT5659_HP_CHARGE_PUMP_1, 0x0c16);
+	regmap_write(rt5659->regmap, RT5659_RESET, 0);
 
 	regcache_cache_bypass(rt5659->regmap, false);
 	regcache_mark_dirty(rt5659->regmap);
 	regcache_sync(rt5659->regmap);
+
+	/* Recovery the volatile values */
+	regmap_write(rt5659->regmap, RT5659_MONO_DRE_CTRL_5, 0x0009);
+	regmap_write(rt5659->regmap, RT5659_4BTN_IL_CMD_1 0x000b);
+
+	mutex_unlock(&rt5659->calibrate_mutex);
+}
+
+void rt5659_calibrate_1(struct rt5659_priv *rt5659)
+{
+	mutex_lock(&rt5659->calibrate_mutex);
+
+	/* Calibrate HPO Start */
+	regcache_cache_bypass(rt5659->regmap, true);
+
+	regmap_write(rt5659->regmap, RT5659_RESET, 0);
+	regmap_write(rt5659->regmap, RT5659_BIAS_CUR_CTRL_8, 0xa502);
+	regmap_write(rt5659->regmap, RT5659_CHOP_DAC, 0x3030);
+
+	regmap_write(rt5659->regmap, RT5659_PRE_DIV_1, 0xef00);
+	regmap_write(rt5659->regmap, RT5659_PRE_DIV_2, 0xeffc);
+	regmap_write(rt5659->regmap, RT5659_MICBIAS_2, 0x0280);
+	regmap_write(rt5659->regmap, RT5659_GLB_CLK, 0x8000);
+
+	regmap_write(rt5659->regmap, RT5659_PWR_ANLG_1, 0xaa7e);
+	msleep(60);
+	regmap_write(rt5659->regmap, RT5659_PWR_ANLG_1, 0xfe7e);
+	msleep(50);
+	regmap_write(rt5659->regmap, RT5659_PWR_ANLG_3, 0x0004);
+	regmap_write(rt5659->regmap, RT5659_PWR_DIG_2, 0x0400);
+	msleep(50);
+	regmap_write(rt5659->regmap, RT5659_PWR_DIG_1, 0x0080);
+	msleep(10);
+	regmap_write(rt5659->regmap, RT5659_DEPOP_1, 0x0009);
+	msleep(50);
+	regmap_write(rt5659->regmap, RT5659_PWR_DIG_1, 0x0f80);
+	msleep(50);
+	regmap_write(rt5659->regmap, RT5659_HP_CHARGE_PUMP_1, 0x0e16);
+	msleep(50);
+
+	/* Enalbe K ADC Power And Clock */
+	regmap_write(rt5659->regmap, RT5659_CAL_REC, 0x0505);
+	msleep(50);
+	regmap_write(rt5659->regmap, RT5659_PWR_ANLG_3, 0x0184);
+	regmap_write(rt5659->regmap, RT5659_CALIB_ADC_CTRL, 0x3c05);
+	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_2, 0x20c1);
+
+	/* Manual K ADC Offset */
+	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_2, 0x2cc1);
+	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_1, 0x4900);
+	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_7, 0x0016);
+
+	/* Manual K Internal Path Offset */
+	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_2, 0x2cc1);
+	regmap_write(rt5659->regmap, RT5659_HP_VOL, 0x0000);
+	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_1, 0x4500);
+	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_7, 0x001f);
+
+	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_7, 0x0000);
+	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_2, 0x20c0);
+	/* Calibrate HPO End */
+
+	/* Calibrate SPO Start */
+	regmap_write(rt5659->regmap, RT5659_CLASSD_0, 0x2021);
+	regmap_write(rt5659->regmap, RT5659_CLASSD_CTRL_1, 0x0260);
+	regmap_write(rt5659->regmap, RT5659_PWR_MIXER, 0x3000);
+	regmap_write(rt5659->regmap, RT5659_PWR_VOL, 0xc000);
+	regmap_write(rt5659->regmap, RT5659_A_DAC_MUX, 0x000c);
+	regmap_write(rt5659->regmap, RT5659_DIG_MISC, 0x8000);
+	regmap_write(rt5659->regmap, RT5659_SPO_VOL, 0x0808);
+	regmap_write(rt5659->regmap, RT5659_SPK_L_MIXER, 0x001e);
+	regmap_write(rt5659->regmap, RT5659_SPK_R_MIXER, 0x001e);
+	regmap_write(rt5659->regmap, RT5659_CLASSD_1, 0x0803);
+	regmap_write(rt5659->regmap, RT5659_CLASSD_2, 0x0554);
+	regmap_write(rt5659->regmap, RT5659_SPO_AMP_GAIN, 0x1103);
+
+	/* Enalbe K ADC Power And Clock */
+	regmap_write(rt5659->regmap, RT5659_CAL_REC, 0x0909);
+	regmap_update_bits(rt5659->regmap, RT5659_HP_CALIB_CTRL_2, 0x0001,
+		0x0001);
+
+	/* Start Calibration */
+	regmap_write(rt5659->regmap, RT5659_SPK_DC_CAILB_CTRL_3, 0x0000);
+	regmap_write(rt5659->regmap, RT5659_CLASSD_0, 0x0021);
+	regmap_write(rt5659->regmap, RT5659_SPK_DC_CAILB_CTRL_1, 0x3e80);
+	/* Calibrate SPO End */
+
+	/* Calibrate MONO Start */
+	regmap_write(rt5659->regmap, RT5659_DIG_MISC, 0x0000);
+	regmap_write(rt5659->regmap, RT5659_MONOMIX_IN_GAIN, 0x021f);
+	regmap_write(rt5659->regmap, RT5659_MONO_OUT, 0x480a);
+	/* MONO DRE GAIN 5dB */
+	regmap_write(rt5659->regmap, RT5659_MONO_GAIN, 0x0003);
+	regmap_write(rt5659->regmap, RT5659_MONO_DRE_CTRL_5, 0x0009);
+
+	/* Start Calibration */
+	regmap_write(rt5659->regmap, RT5659_SPK_DC_CAILB_CTRL_3, 0x000f);
+	regmap_write(rt5659->regmap, RT5659_MONO_AMP_CALIB_CTRL_1, 0x1e00);
+
+	regmap_write(rt5659->regmap, RT5659_SPK_DC_CAILB_CTRL_3, 0x0003);
+	/* Calibrate MONO End */
+
+	/* Power Off */
+	regmap_write(rt5659->regmap, RT5659_CAL_REC, 0x0808);
+	regmap_write(rt5659->regmap, RT5659_PWR_ANLG_3, 0x0000);
+	regmap_write(rt5659->regmap, RT5659_CALIB_ADC_CTRL, 0x2005);
+	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_2, 0x20c0);
+	regmap_write(rt5659->regmap, RT5659_DEPOP_1, 0x0000);
+	regmap_write(rt5659->regmap, RT5659_CLASSD_1, 0x0011);
+	regmap_write(rt5659->regmap, RT5659_CLASSD_2, 0x0150);
+	regmap_write(rt5659->regmap, RT5659_PWR_ANLG_1, 0xfe3e);
+	regmap_write(rt5659->regmap, RT5659_MONO_OUT, 0xc80a);
+	regmap_write(rt5659->regmap, RT5659_MONO_AMP_CALIB_CTRL_1, 0x1e04);
+	regmap_write(rt5659->regmap, RT5659_PWR_MIXER, 0x0000);
+	regmap_write(rt5659->regmap, RT5659_PWR_VOL, 0x0000);
+	regmap_write(rt5659->regmap, RT5659_PWR_DIG_1, 0x0000);
+	regmap_write(rt5659->regmap, RT5659_PWR_DIG_2, 0x0000);
+	regmap_write(rt5659->regmap, RT5659_PWR_ANLG_1, 0x003e);
+	regmap_write(rt5659->regmap, RT5659_CLASSD_CTRL_1, 0x0060);
+	regmap_write(rt5659->regmap, RT5659_CLASSD_0, 0x2021);
+	regmap_write(rt5659->regmap, RT5659_GLB_CLK, 0x0000);
+	regmap_write(rt5659->regmap, RT5659_MICBIAS_2, 0x0080);
+	regmap_write(rt5659->regmap, RT5659_HP_VOL, 0x8080);
+	regmap_write(rt5659->regmap, RT5659_HP_CHARGE_PUMP_1, 0x0c16);
+	regmap_write(rt5659->regmap, RT5659_RESET, 0);
+
+	regcache_cache_bypass(rt5659->regmap, false);
+	regcache_mark_dirty(rt5659->regmap);
+	regcache_sync(rt5659->regmap);
+
+	/* Recovery the volatile values */
+	regmap_write(rt5659->regmap, RT5659_MONO_DRE_CTRL_5, 0x0009);
+	regmap_write(rt5659->regmap, RT5659_4BTN_IL_CMD_1 0x000b);
 
 	mutex_unlock(&rt5659->calibrate_mutex);
 }
@@ -5463,7 +5606,20 @@ static void rt5659_i2s_switch_slave_work_2(struct work_struct *work)
 		RT5659_I2S_MS_S);
 }
 
-static int rt5659_cal_data_write_efs(struct rt5659_cal_data *cal_data)
+void print_cal_data(struct rt5659_cal_data *cal_data)
+{
+	int i;
+
+	for (i = 0; i < 0x20; i++) {
+		pr_info("[JJ] hp_cal_l[%d] - 0x%04x\n", i, cal_data->hp_cal_l[i]);
+		pr_info("[JJ] hp_cal_r[%d] - 0x%04x\n", i, cal_data->hp_cal_r[i]);
+	}
+	for (i = 0; i < 0xd; i++) {
+		pr_info("[JJ] mono_cal[%d] - 0x%04x\n", i, cal_data->mono_cal[i]);
+	}
+}
+
+int rt5659_cal_data_write_efs(struct rt5659_cal_data *cal_data)
 {
 	struct file *fp = NULL;
 	mm_segment_t oldfs = {0};
@@ -5472,24 +5628,17 @@ static int rt5659_cal_data_write_efs(struct rt5659_cal_data *cal_data)
 	int retry_cnt = 10;
 	int size = sizeof(struct rt5659_cal_data);
 
-int i;
-for (i = 0; i < 0x20; i++) {
-	pr_info("[JJ] hp_cal_l[%d] - %#x\n", i, cal_data->hp_cal_l[i]);
-	pr_info("[JJ] hp_cal_r[%d] - %#x\n", i, cal_data->hp_cal_r[i]);
-}
-for (i = 0; i < 0xd; i++) {
-	pr_info("[JJ] mono_cal[%d] - %#x\n", i, cal_data->mono_cal[i]);
-
+print_cal_data(cal_data);
 	oldfs = get_fs();
 	set_fs(get_ds());
-
-	fp = filp_open(CAL_DATA_EFS, O_WRONLY | O_CREAT | O_TRUNC, 0660);
 retry:
+	fp = filp_open(CAL_DATA_EFS, O_WRONLY | O_CREAT | O_TRUNC, 0660);
+
 	if (IS_ERR(fp)) {
 		pr_err("%s : File open error\n", __func__);
 		retry_cnt--;
 		if (retry_cnt) {
-			msleep(100);
+			msleep(50);
 			goto retry;
 		}
 		ret = -1;
@@ -5509,21 +5658,27 @@ retry:
 	return ret;
 }
 
-static int rt5659_cal_data_read_efs(struct rt5659_cal_data *cal_data)
+int rt5659_cal_data_read_efs(struct rt5659_cal_data *cal_data)
 {
 	struct file *fp = NULL;
 	mm_segment_t oldfs = {0};
 	char buf[EFS_CAL_BUF_SIZE];
 	int ret = 0;
+	int retry_cnt = 10;
 	int size = sizeof(struct rt5659_cal_data);
-int i;
+
 	oldfs = get_fs();
 	set_fs(get_ds());
-
+retry:
 	fp = filp_open(CAL_DATA_EFS, O_RDONLY, 0);
 
 	if (IS_ERR(fp)) {
 		pr_err("%s : File open error\n", __func__);
+		retry_cnt--;
+		if (retry_cnt) {
+			msleep(50);
+			goto retry;
+		}
 		ret = -1;
 	} else {
 		ret = kernel_read(fp, 0, buf, size);
@@ -5532,14 +5687,8 @@ int i;
 		if (ret) {
 			memcpy(cal_data, buf, size);
 
-for (i = 0; i < 0x20; i++) {
-	pr_info("[JJ] hp_cal_l[%d] - %#x\n", i, cal_data->hp_cal_l[i]);
-	pr_info("[JJ] hp_cal_r[%d] - %#x\n", i, cal_data->hp_cal_r[i]);
-}
-for (i = 0; i < 0xd; i++) {
-	pr_info("[JJ] mono_cal[%d] - %#x\n", i, cal_data->mono_cal[i]);
-
 			pr_info("%s : File read OK(%d)\n", __func__, ret);
+print_cal_data(cal_data);
 		}
 		else
 			pr_err("%s : File read fail\n", __func__);
@@ -5548,11 +5697,11 @@ for (i = 0; i < 0xd; i++) {
 	return ret;
 }
 
-static int rt5659_check_efs_mounted(void)
+int rt5659_check_efs_mounted(void)
 {
 	struct file *fp = NULL;
 	mm_segment_t oldfs = {0};
-	int check_cnt = 100;
+	int check_cnt = 30;
 	int ret = 0;
 
 	oldfs = get_fs();
@@ -5569,7 +5718,7 @@ static int rt5659_check_efs_mounted(void)
 				ret = false;
 				break;
 			}
-			msleep(300);
+			msleep(200);
 		} else {
 			pr_info("%s : efs is mounted\n", __func__);
 			filp_close(fp, NULL);
@@ -5585,23 +5734,35 @@ static void rt5659_calibrate_handler(struct work_struct *work)
 {
 	struct rt5659_cal_data cal_data;
 	struct rt5659_priv *rt5659 = container_of(work, struct rt5659_priv,
-		calibrate_work);
+		calibrate_work.work);
+	int size = sizeof(struct rt5659_cal_data);
 
-pr_info("[JJ] %s start!! \n", __func__);
+	pr_info("%s start!! \n", __func__);
+
 	if (rt5659_check_efs_mounted()) {
-		if (rt5659_cal_data_read_efs(&cal_data) > 0) {
+		if (rt5659_cal_data_read_efs(&cal_data) == size) {
+			rt5659_calibrate_1(rt5659);
 			rt5659_cal_data_write(rt5659, &cal_data);
 		} else {
+//panic("JJ");
+			pr_info("%s: rt5659_calibrate start\n", __func__);
 			rt5659_calibrate(rt5659);
+			pr_info("%s: rt5659_calibrate end\n", __func__);
 			rt5659_cal_data_read(rt5659, &cal_data);
-			if (rt5659_cal_data_write_efs(&cal_data)) {
-				pr_info("[JJ] write success\n");
+			if (rt5659_cal_data_write_efs(&cal_data) == size) {
+				pr_info("%s: EFS write success\n", __func__);
 			} else {
-				pr_err("[JJ] write fail\n");
+				pr_err("%s: EFS write fail\n", __func__);
 			}
 		}
+	} else {
+panic("JJ");
+		rt5659_calibrate(rt5659);
 	}
-pr_info("[JJ] %s end!! \n", __func__);
+//pr_err("[JJ] System restart!!!\n");
+//sec_debug_set_upload_magic(0x0, NULL);
+//exynos5_restart(0, 0);
+	pr_info("%s end!! \n", __func__);
 }
 
 static int rt5659_i2c_probe(struct i2c_client *i2c,
@@ -5791,7 +5952,7 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 		rt5659_i2s_switch_slave_work_1);
 	INIT_DELAYED_WORK(&rt5659->i2s_switch_slave_work[RT5659_AIF3],
 		rt5659_i2s_switch_slave_work_2);
-	INIT_WORK(&rt5659->calibrate_work, rt5659_calibrate_handler);
+	INIT_DELAYED_WORK(&rt5659->calibrate_work, rt5659_calibrate_handler);
 
 	return snd_soc_register_codec(&i2c->dev, &soc_codec_dev_rt5659,
 			rt5659_dai, ARRAY_SIZE(rt5659_dai));
