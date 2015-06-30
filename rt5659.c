@@ -1662,6 +1662,8 @@ static int rt5659_cal_data_write(struct rt5659_priv *rt5659,
 {
 	unsigned short i;
 
+	regmap_update_bits(rt5659->regmap, RT5659_HP_CALIB_CTRL_1, 0x0010,
+		0x0010);
 	for (i = 0; i < 0x20; i++) {
 		regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_10,
 			cal_data->hp_cal_l[i]);
@@ -1670,17 +1672,15 @@ static int rt5659_cal_data_write(struct rt5659_priv *rt5659,
 		regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_9,
 			0x8000 | i << 8 | i);
 	}
-	regmap_update_bits(rt5659->regmap, RT5659_HP_CALIB_CTRL_1, 0x0010,
-		0x0010);
 
+	regmap_update_bits(rt5659->regmap, RT5659_MONO_AMP_CALIB_CTRL_1, 0x0008,
+		0x0008);
 	for (i = 0; i < 0xd; i++) {
 		regmap_write(rt5659->regmap, RT5659_MONO_AMP_CALIB_CTRL_4,
 			cal_data->mono_cal[i]);
 		regmap_write(rt5659->regmap, RT5659_MONO_AMP_CALIB_CTRL_3,
 			0x8000 | i);
 	}
-	regmap_update_bits(rt5659->regmap, RT5659_MONO_AMP_CALIB_CTRL_1, 0x0008,
-		0x0008);
 
 	return 0;
 }
@@ -5442,135 +5442,6 @@ void rt5659_calibrate(struct rt5659_priv *rt5659)
 	mutex_unlock(&rt5659->calibrate_mutex);
 }
 
-void rt5659_calibrate_1(struct rt5659_priv *rt5659)
-{
-	mutex_lock(&rt5659->calibrate_mutex);
-
-	/* Calibrate HPO Start */
-	regcache_cache_bypass(rt5659->regmap, true);
-
-	regmap_write(rt5659->regmap, RT5659_RESET, 0);
-	regmap_write(rt5659->regmap, RT5659_BIAS_CUR_CTRL_8, 0xa502);
-	regmap_write(rt5659->regmap, RT5659_CHOP_DAC, 0x3030);
-
-	regmap_write(rt5659->regmap, RT5659_PRE_DIV_1, 0xef00);
-	regmap_write(rt5659->regmap, RT5659_PRE_DIV_2, 0xeffc);
-	regmap_write(rt5659->regmap, RT5659_MICBIAS_2, 0x0280);
-	regmap_write(rt5659->regmap, RT5659_GLB_CLK, 0x8000);
-
-	regmap_write(rt5659->regmap, RT5659_PWR_ANLG_1, 0xaa7e);
-	msleep(60);
-	regmap_write(rt5659->regmap, RT5659_PWR_ANLG_1, 0xfe7e);
-	msleep(50);
-	regmap_write(rt5659->regmap, RT5659_PWR_ANLG_3, 0x0004);
-	regmap_write(rt5659->regmap, RT5659_PWR_DIG_2, 0x0400);
-	msleep(50);
-	regmap_write(rt5659->regmap, RT5659_PWR_DIG_1, 0x0080);
-	msleep(10);
-	regmap_write(rt5659->regmap, RT5659_DEPOP_1, 0x0009);
-	msleep(50);
-	regmap_write(rt5659->regmap, RT5659_PWR_DIG_1, 0x0f80);
-	msleep(50);
-	regmap_write(rt5659->regmap, RT5659_HP_CHARGE_PUMP_1, 0x0e16);
-	msleep(50);
-
-	/* Enalbe K ADC Power And Clock */
-	regmap_write(rt5659->regmap, RT5659_CAL_REC, 0x0505);
-	msleep(50);
-	regmap_write(rt5659->regmap, RT5659_PWR_ANLG_3, 0x0184);
-	regmap_write(rt5659->regmap, RT5659_CALIB_ADC_CTRL, 0x3c05);
-	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_2, 0x20c1);
-
-	/* Manual K ADC Offset */
-	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_2, 0x2cc1);
-	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_1, 0x4900);
-	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_7, 0x0016);
-
-	/* Manual K Internal Path Offset */
-	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_2, 0x2cc1);
-	regmap_write(rt5659->regmap, RT5659_HP_VOL, 0x0000);
-	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_1, 0x4500);
-	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_7, 0x001f);
-
-	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_7, 0x0000);
-	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_2, 0x20c0);
-	/* Calibrate HPO End */
-
-	/* Calibrate SPO Start */
-	regmap_write(rt5659->regmap, RT5659_CLASSD_0, 0x2021);
-	regmap_write(rt5659->regmap, RT5659_CLASSD_CTRL_1, 0x0260);
-	regmap_write(rt5659->regmap, RT5659_PWR_MIXER, 0x3000);
-	regmap_write(rt5659->regmap, RT5659_PWR_VOL, 0xc000);
-	regmap_write(rt5659->regmap, RT5659_A_DAC_MUX, 0x000c);
-	regmap_write(rt5659->regmap, RT5659_DIG_MISC, 0x8000);
-	regmap_write(rt5659->regmap, RT5659_SPO_VOL, 0x0808);
-	regmap_write(rt5659->regmap, RT5659_SPK_L_MIXER, 0x001e);
-	regmap_write(rt5659->regmap, RT5659_SPK_R_MIXER, 0x001e);
-	regmap_write(rt5659->regmap, RT5659_CLASSD_1, 0x0803);
-	regmap_write(rt5659->regmap, RT5659_CLASSD_2, 0x0554);
-	regmap_write(rt5659->regmap, RT5659_SPO_AMP_GAIN, 0x1103);
-
-	/* Enalbe K ADC Power And Clock */
-	regmap_write(rt5659->regmap, RT5659_CAL_REC, 0x0909);
-	regmap_update_bits(rt5659->regmap, RT5659_HP_CALIB_CTRL_2, 0x0001,
-		0x0001);
-
-	/* Start Calibration */
-	regmap_write(rt5659->regmap, RT5659_SPK_DC_CAILB_CTRL_3, 0x0000);
-	regmap_write(rt5659->regmap, RT5659_CLASSD_0, 0x0021);
-	regmap_write(rt5659->regmap, RT5659_SPK_DC_CAILB_CTRL_1, 0x3e80);
-	/* Calibrate SPO End */
-
-	/* Calibrate MONO Start */
-	regmap_write(rt5659->regmap, RT5659_DIG_MISC, 0x0000);
-	regmap_write(rt5659->regmap, RT5659_MONOMIX_IN_GAIN, 0x021f);
-	regmap_write(rt5659->regmap, RT5659_MONO_OUT, 0x480a);
-	/* MONO DRE GAIN 5dB */
-	regmap_write(rt5659->regmap, RT5659_MONO_GAIN, 0x0003);
-	regmap_write(rt5659->regmap, RT5659_MONO_DRE_CTRL_5, 0x0009);
-
-	/* Start Calibration */
-	regmap_write(rt5659->regmap, RT5659_SPK_DC_CAILB_CTRL_3, 0x000f);
-	regmap_write(rt5659->regmap, RT5659_MONO_AMP_CALIB_CTRL_1, 0x1e00);
-
-	regmap_write(rt5659->regmap, RT5659_SPK_DC_CAILB_CTRL_3, 0x0003);
-	/* Calibrate MONO End */
-
-	/* Power Off */
-	regmap_write(rt5659->regmap, RT5659_CAL_REC, 0x0808);
-	regmap_write(rt5659->regmap, RT5659_PWR_ANLG_3, 0x0000);
-	regmap_write(rt5659->regmap, RT5659_CALIB_ADC_CTRL, 0x2005);
-	regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_2, 0x20c0);
-	regmap_write(rt5659->regmap, RT5659_DEPOP_1, 0x0000);
-	regmap_write(rt5659->regmap, RT5659_CLASSD_1, 0x0011);
-	regmap_write(rt5659->regmap, RT5659_CLASSD_2, 0x0150);
-	regmap_write(rt5659->regmap, RT5659_PWR_ANLG_1, 0xfe3e);
-	regmap_write(rt5659->regmap, RT5659_MONO_OUT, 0xc80a);
-	regmap_write(rt5659->regmap, RT5659_MONO_AMP_CALIB_CTRL_1, 0x1e04);
-	regmap_write(rt5659->regmap, RT5659_PWR_MIXER, 0x0000);
-	regmap_write(rt5659->regmap, RT5659_PWR_VOL, 0x0000);
-	regmap_write(rt5659->regmap, RT5659_PWR_DIG_1, 0x0000);
-	regmap_write(rt5659->regmap, RT5659_PWR_DIG_2, 0x0000);
-	regmap_write(rt5659->regmap, RT5659_PWR_ANLG_1, 0x003e);
-	regmap_write(rt5659->regmap, RT5659_CLASSD_CTRL_1, 0x0060);
-	regmap_write(rt5659->regmap, RT5659_CLASSD_0, 0x2021);
-	regmap_write(rt5659->regmap, RT5659_GLB_CLK, 0x0000);
-	regmap_write(rt5659->regmap, RT5659_MICBIAS_2, 0x0080);
-	regmap_write(rt5659->regmap, RT5659_HP_VOL, 0x8080);
-	regmap_write(rt5659->regmap, RT5659_HP_CHARGE_PUMP_1, 0x0c16);
-	regmap_write(rt5659->regmap, RT5659_RESET, 0);
-
-	regcache_cache_bypass(rt5659->regmap, false);
-	regcache_mark_dirty(rt5659->regmap);
-	regcache_sync(rt5659->regmap);
-
-	/* Recovery the volatile values */
-	regmap_write(rt5659->regmap, RT5659_MONO_DRE_CTRL_5, 0x0009);
-	regmap_write(rt5659->regmap, RT5659_4BTN_IL_CMD_1 0x000b);
-
-	mutex_unlock(&rt5659->calibrate_mutex);
-}
-
 static void rt5659_i2s_switch_slave_work_0(struct work_struct *work)
 {
 /*
@@ -5741,7 +5612,6 @@ static void rt5659_calibrate_handler(struct work_struct *work)
 
 	if (rt5659_check_efs_mounted()) {
 		if (rt5659_cal_data_read_efs(&cal_data) == size) {
-			rt5659_calibrate_1(rt5659);
 			rt5659_cal_data_write(rt5659, &cal_data);
 		} else {
 //panic("JJ");
