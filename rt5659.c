@@ -5373,7 +5373,7 @@ void rt5659_calibrate(struct rt5659_priv *rt5659)
 
 	/* Recovery the volatile values */
 	regmap_write(rt5659->regmap, RT5659_MONO_DRE_CTRL_5, 0x0009);
-	regmap_write(rt5659->regmap, RT5659_4BTN_IL_CMD_1 0x000b);
+	regmap_write(rt5659->regmap, RT5659_4BTN_IL_CMD_1, 0x000b);
 
 	mutex_unlock(&rt5659->calibrate_mutex);
 }
@@ -5600,12 +5600,15 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 		regmap_write(rt5659->regmap, RT5659_IL_CMD_3,
 			rt5659->pdata.push_button_range_def);
 
+	mutex_init(&rt5659->calibrate_mutex);
+
 	INIT_DELAYED_WORK(&rt5659->i2s_switch_slave_work[RT5659_AIF1],
 		rt5659_i2s_switch_slave_work_0);
 	INIT_DELAYED_WORK(&rt5659->i2s_switch_slave_work[RT5659_AIF2],
 		rt5659_i2s_switch_slave_work_1);
 	INIT_DELAYED_WORK(&rt5659->i2s_switch_slave_work[RT5659_AIF3],
 		rt5659_i2s_switch_slave_work_2);
+	INIT_DELAYED_WORK(&rt5659->calibrate_work, rt5659_calibrate_handler);
 
 	return snd_soc_register_codec(&i2c->dev, &soc_codec_dev_rt5659,
 			rt5659_dai, ARRAY_SIZE(rt5659_dai));
