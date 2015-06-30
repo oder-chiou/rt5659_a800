@@ -1348,6 +1348,9 @@
 		</path>
 
 		<path name="loopback_packet-2nd-mic">
+			<ctl name="Stereo ADC Control" value="Enable"/>
+			<ctl name="Mono ADC L Control" value="Enable"/>
+			<ctl name="Mono ADC R Control" value="Enable"/>
 			<ctl name="AD STO1 Clk Sel" value="clk_i2s2_track"/>
 			<ctl name="IF2 ADC Mux" value="IF_ADC1"/>
 			<ctl name="RECMIX1L BST3 Switch" value="1"/>
@@ -1377,6 +1380,9 @@
 		</path>
 
 		<path name="loopback-2nd-mic">
+			<ctl name="Stereo ADC Control" value="Enable"/>
+			<ctl name="Mono ADC L Control" value="Enable"/>
+			<ctl name="Mono ADC R Control" value="Enable"/>
 			<ctl name="AD STO1 Clk Sel" value="clk_i2s2_track"/>
 			<ctl name="IF2 ADC Mux" value="IF_ADC1"/>
 			<ctl name="RECMIX1L BST3 Switch" value="1"/>
@@ -1410,6 +1416,9 @@
 		</path>
 
 		<path name="echo_test-dualmic">
+			<ctl name="Stereo ADC Control" value="Enable"/>
+			<ctl name="Mono ADC L Control" value="Enable"/>
+			<ctl name="Mono ADC R Control" value="Enable"/>
 			<ctl name="RECMIX1L BST4 Switch" value="1"/>
 			<ctl name="RECMIX1R BST3 Switch" value="1"/>
 			<ctl name="Stereo1 ADC Source" value="ADC1"/>
