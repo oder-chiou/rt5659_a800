@@ -1657,18 +1657,30 @@ static int rt5659_cal_data_read(struct rt5659_priv *rt5659,
 	return 0;
 }
 
+const unsigned short hp_cal_r_offset[0x20] = {
+	50 ,  55,  59,  65,  71,  77,  84,  92,
+	100, 109, 119, 129, 141, 154, 167, 183,
+	199, 217, 237, 258, 281, 307, 334, 364,
+	397, 433, 472, 515, 561, 612, 667, 727
+};
+
 static int rt5659_cal_data_write(struct rt5659_priv *rt5659, 
 	struct rt5659_cal_data *cal_data)
 {
 	unsigned short i;
 
+	regmap_update_bits(rt5659->regmap, RT5659_HP_CALIB_CTRL_1, 0x0400, 0x0);
+	regmap_update_bits(rt5659->regmap, RT5659_HP_CALIB_CTRL_1, 0x0400,
+		0x0400);
 	regmap_update_bits(rt5659->regmap, RT5659_HP_CALIB_CTRL_1, 0x0010,
 		0x0010);
 	for (i = 0; i < 0x20; i++) {
+		regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_9,
+			i << 8 | i);
 		regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_10,
 			cal_data->hp_cal_l[i]);
 		regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_11,
-			cal_data->hp_cal_r[i]);
+			cal_data->hp_cal_r[i] + hp_cal_r_offset[i]);
 		regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_9,
 			0x8000 | i << 8 | i);
 	}
@@ -1676,6 +1688,7 @@ static int rt5659_cal_data_write(struct rt5659_priv *rt5659,
 	regmap_update_bits(rt5659->regmap, RT5659_MONO_AMP_CALIB_CTRL_1, 0x0008,
 		0x0008);
 	for (i = 0; i < 0xd; i++) {
+		regmap_write(rt5659->regmap, RT5659_MONO_AMP_CALIB_CTRL_3, i);
 		regmap_write(rt5659->regmap, RT5659_MONO_AMP_CALIB_CTRL_4,
 			cal_data->mono_cal[i]);
 		regmap_write(rt5659->regmap, RT5659_MONO_AMP_CALIB_CTRL_3,
