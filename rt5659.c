@@ -32,6 +32,9 @@
 
 #include "rt5659.h"
 
+#include "../../arch/arm/mach-exynos/common.h"
+void sec_debug_set_upload_magic(unsigned magic, char *str);
+
 #ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
 static struct snd_soc_codec *registered_codec;
 #endif
@@ -1621,6 +1624,96 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 }
 EXPORT_SYMBOL(rt5659_get_jack_type);
 
+static int rt5659_cal_data_read(struct rt5659_priv *rt5659,
+	struct rt5659_cal_data *cal_data)
+{
+	unsigned int i, cal_offset_msb, cal_offset_lsb;
+
+	regmap_update_bits(rt5659->regmap, RT5659_STO_DRE_CTRL_1, 0x8000,
+		0x0000);
+
+	for (i = 0; i < 0x20; i++) {
+		regmap_update_bits(rt5659->regmap, RT5659_HPL_GAIN, RT5659_G_HP,
+			i << RT5659_G_HP_SFT);
+		regmap_read(rt5659->regmap, RT5659_HP_CALIB_STA_6,
+			&cal_offset_msb);
+		regmap_read(rt5659->regmap, RT5659_HP_CALIB_STA_7,
+			&cal_offset_lsb);
+		cal_data->hp_cal_l[i] = (cal_offset_msb << 14) |
+			(cal_offset_lsb >> 2);
+	}
+	regmap_update_bits(rt5659->regmap, RT5659_HPL_GAIN, RT5659_G_HP, 0);
+
+	for (i = 0; i < 0x20; i++) {
+		regmap_update_bits(rt5659->regmap, RT5659_HPR_GAIN, RT5659_G_HP,
+			i << RT5659_G_HP_SFT);
+		regmap_read(rt5659->regmap, RT5659_HP_CALIB_STA_8,
+			&cal_offset_msb);
+		regmap_read(rt5659->regmap, RT5659_HP_CALIB_STA_9,
+			&cal_offset_lsb);
+		cal_data->hp_cal_r[i] = (cal_offset_msb << 14) |
+			(cal_offset_lsb >> 2);
+	}
+	regmap_update_bits(rt5659->regmap, RT5659_HPR_GAIN, RT5659_G_HP, 0);
+	
+	regmap_update_bits(rt5659->regmap, RT5659_MONO_DRE_CTRL_1, 0x8000,
+		0x0000);
+
+	for (i = 0; i < 0xd; i++) {
+		regmap_update_bits(rt5659->regmap, RT5659_MONO_GAIN, RT5659_G_HP,
+			i << RT5659_G_HP_SFT);
+		regmap_read(rt5659->regmap, RT5659_MONO_AMP_CALIB_STA_3,
+			&cal_offset_msb);
+		regmap_read(rt5659->regmap, RT5659_MONO_AMP_CALIB_STA_4,
+			&cal_offset_lsb);
+		cal_data->mono_cal[i] = (cal_offset_msb << 14) |
+			(cal_offset_lsb >> 2);
+	}
+	regmap_update_bits(rt5659->regmap, RT5659_MONO_GAIN, RT5659_G_HP, 0);
+
+	return 0;
+}
+
+const unsigned short hp_cal_r_offset[0x20] = {
+	50 ,  55,  59,  65,  71,  77,  84,  92,
+	100, 109, 119, 129, 141, 154, 167, 183,
+	199, 217, 237, 258, 281, 307, 334, 364,
+	397, 433, 472, 515, 561, 612, 667, 727
+};
+
+static int rt5659_cal_data_write(struct rt5659_priv *rt5659, 
+	struct rt5659_cal_data *cal_data)
+{
+	unsigned short i;
+
+	regmap_update_bits(rt5659->regmap, RT5659_HP_CALIB_CTRL_1, 0x0400, 0x0);
+	regmap_update_bits(rt5659->regmap, RT5659_HP_CALIB_CTRL_1, 0x0400,
+		0x0400);
+	regmap_update_bits(rt5659->regmap, RT5659_HP_CALIB_CTRL_1, 0x0010,
+		0x0010);
+	for (i = 0; i < 0x20; i++) {
+		regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_9,
+			i << 8 | i);
+		regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_10,
+			cal_data->hp_cal_l[i]);
+		regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_11,
+			cal_data->hp_cal_r[i] + hp_cal_r_offset[i]);
+		regmap_write(rt5659->regmap, RT5659_HP_CALIB_CTRL_9,
+			0x8000 | i << 8 | i);
+	}
+
+	regmap_update_bits(rt5659->regmap, RT5659_MONO_AMP_CALIB_CTRL_1, 0x0008,
+		0x0008);
+	for (i = 0; i < 0xd; i++) {
+		regmap_write(rt5659->regmap, RT5659_MONO_AMP_CALIB_CTRL_3, i);
+		regmap_write(rt5659->regmap, RT5659_MONO_AMP_CALIB_CTRL_4,
+			cal_data->mono_cal[i]);
+		regmap_write(rt5659->regmap, RT5659_MONO_AMP_CALIB_CTRL_3,
+			0x8000 | i);
+	}
+
+	return 0;
+}
 static void rt5659_noise_gate(struct snd_soc_codec *codec, bool enable)
 {
 	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
@@ -4973,7 +5066,7 @@ static int rt5659_probe(struct snd_soc_codec *codec)
 		return ret;
 	}
 
-	schedule_delayed_work(&rt5659->calibrate_work, msecs_to_jiffies(1000));
+	schedule_delayed_work(&rt5659->calibrate_work, msecs_to_jiffies(0));
 
 	return 0;
 }
@@ -5413,12 +5506,161 @@ static void rt5659_i2s_switch_slave_work_2(struct work_struct *work)
 		RT5659_I2S_MS_S);
 }
 
+void print_cal_data(struct rt5659_cal_data *cal_data)
+{
+	int i;
+
+	for (i = 0; i < 0x20; i++) {
+		pr_info("[JJ] hp_cal_l[%d] - 0x%04x\n", i, cal_data->hp_cal_l[i]);
+		pr_info("[JJ] hp_cal_r[%d] - 0x%04x\n", i, cal_data->hp_cal_r[i]);
+	}
+	for (i = 0; i < 0xd; i++) {
+		pr_info("[JJ] mono_cal[%d] - 0x%04x\n", i, cal_data->mono_cal[i]);
+	}
+}
+
+int rt5659_cal_data_write_efs(struct rt5659_cal_data *cal_data)
+{
+	struct file *fp = NULL;
+	mm_segment_t oldfs = {0};
+	char buf[EFS_CAL_BUF_SIZE];
+	int ret = 0;
+	int retry_cnt = 10;
+	int size = sizeof(struct rt5659_cal_data);
+
+print_cal_data(cal_data);
+	oldfs = get_fs();
+	set_fs(get_ds());
+retry:
+	fp = filp_open(CAL_DATA_EFS, O_WRONLY | O_CREAT | O_TRUNC, 0660);
+
+	if (IS_ERR(fp)) {
+		pr_err("%s : File open error\n", __func__);
+		retry_cnt--;
+		if (retry_cnt) {
+			msleep(50);
+			goto retry;
+		}
+		ret = -1;
+	} else {
+		if (fp->f_mode & FMODE_WRITE) {
+			memcpy(buf, cal_data, size);
+			ret = fp->f_op->write(fp, (const char *)buf,
+				size, &fp->f_pos);
+			if (ret < 0)
+				pr_err("%s : File write fail\n", __func__);
+			else
+				pr_info("%s : File write OK(%d)\n", __func__, ret);
+		}
+		filp_close(fp, NULL);
+	}
+	set_fs(oldfs);
+	return ret;
+}
+
+int rt5659_cal_data_read_efs(struct rt5659_cal_data *cal_data)
+{
+	struct file *fp = NULL;
+	mm_segment_t oldfs = {0};
+	char buf[EFS_CAL_BUF_SIZE];
+	int ret = 0;
+	int retry_cnt = 10;
+	int size = sizeof(struct rt5659_cal_data);
+
+	oldfs = get_fs();
+	set_fs(get_ds());
+retry:
+	fp = filp_open(CAL_DATA_EFS, O_RDONLY, 0);
+
+	if (IS_ERR(fp)) {
+		pr_err("%s : File open error\n", __func__);
+		retry_cnt--;
+		if (retry_cnt) {
+			msleep(50);
+			goto retry;
+		}
+		ret = -1;
+	} else {
+		ret = kernel_read(fp, 0, buf, size);
+		filp_close(fp, NULL);
+
+		if (ret) {
+			memcpy(cal_data, buf, size);
+
+			pr_info("%s : File read OK(%d)\n", __func__, ret);
+print_cal_data(cal_data);
+		}
+		else
+			pr_err("%s : File read fail\n", __func__);
+	}
+	set_fs(oldfs);
+	return ret;
+}
+
+int rt5659_check_efs_mounted(void)
+{
+	struct file *fp = NULL;
+	mm_segment_t oldfs = {0};
+	int check_cnt = 30;
+	int ret = 0;
+
+	oldfs = get_fs();
+	set_fs(get_ds());
+
+	while (true) {
+		fp = filp_open("/efs/", O_RDONLY, 0);
+		
+		if (IS_ERR(fp)) {
+			pr_err("%s : efs is not mount yet\n", __func__);
+			check_cnt--;
+			if (check_cnt < 0) {
+				pr_err("%s : efs mount fail\n", __func__);
+				ret = false;
+				break;
+			}
+			msleep(200);
+		} else {
+			pr_info("%s : efs is mounted\n", __func__);
+			filp_close(fp, NULL);
+			ret = true;
+			break;
+		}
+	}
+	set_fs(oldfs);
+	return ret;
+}
+
 static void rt5659_calibrate_handler(struct work_struct *work)
 {
 	struct rt5659_priv *rt5659 = container_of(work, struct rt5659_priv,
 		calibrate_work.work);
+	int size = sizeof(struct rt5659_cal_data);
 
-	rt5659_calibrate(rt5659);
+	pr_info("%s start!! \n", __func__);
+
+	if (rt5659_check_efs_mounted()) {
+		if (rt5659_cal_data_read_efs(&cal_data) == size) {
+			rt5659_cal_data_write(rt5659, &cal_data);
+		} else {
+//panic("JJ");
+			pr_info("%s: rt5659_calibrate start\n", __func__);
+			rt5659_calibrate(rt5659);
+			pr_info("%s: rt5659_calibrate end\n", __func__);
+			rt5659_cal_data_read(rt5659, &cal_data);
+			if (rt5659_cal_data_write_efs(&cal_data) == size) {
+				pr_info("%s: EFS write success\n", __func__);
+			} else {
+				pr_err("%s: EFS write fail\n", __func__);
+			}
+		}
+	} else {
+panic("JJ");
+		rt5659_calibrate(rt5659);
+	}
+//pr_err("[JJ] System restart!!!\n");
+//sec_debug_set_upload_magic(0x0, NULL);
+//exynos5_restart(0, 0);
+	pr_info("%s end!! \n", __func__);
 }
 
 static int rt5659_i2c_probe(struct i2c_client *i2c,
@@ -5492,8 +5734,6 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 	regmap_update_bits(rt5659->regmap, RT5659_DUMMY_2, 0x0100, 0x0100);
 	regmap_read(rt5659->regmap, RT5659_VENDOR_ID, &rt5659->v_id);
 	regmap_update_bits(rt5659->regmap, RT5659_DUMMY_2, 0x0100, 0x0000);
-
-	rt5659_calibrate(rt5659);
 
 	pr_debug("%s: dmic1_data_pin = %d, dmic2_data_pin =%d",	__func__,
 		rt5659->pdata.dmic1_data_pin, rt5659->pdata.dmic2_data_pin);
