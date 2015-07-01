@@ -1714,6 +1714,7 @@ static int rt5659_cal_data_write(struct rt5659_priv *rt5659,
 
 	return 0;
 }
+
 static void rt5659_noise_gate(struct snd_soc_codec *codec, bool enable)
 {
 	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
@@ -5632,6 +5633,7 @@ int rt5659_check_efs_mounted(void)
 
 static void rt5659_calibrate_handler(struct work_struct *work)
 {
+	struct rt5659_cal_data cal_data;
 	struct rt5659_priv *rt5659 = container_of(work, struct rt5659_priv,
 		calibrate_work.work);
 	int size = sizeof(struct rt5659_cal_data);
