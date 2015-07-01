@@ -4968,6 +4968,7 @@ static int rt5659_set_bias_level(struct snd_soc_codec *codec,
 			enum snd_soc_bias_level level)
 {
 	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
+	unsigned int val;
 
 	pr_debug("%s: level = %d\n", __func__, level);
 
@@ -4989,6 +4990,7 @@ static int rt5659_set_bias_level(struct snd_soc_codec *codec,
 				RT5659_PWR_FV1 | RT5659_PWR_FV2,
 				RT5659_PWR_FV1 | RT5659_PWR_FV2);
 		}
+		regmap_read(rt5659->regmap, RT5659_DEVICE_ID, &val);
 		break;
 
 	case SND_SOC_BIAS_OFF:
@@ -4998,6 +5000,7 @@ static int rt5659_set_bias_level(struct snd_soc_codec *codec,
 			RT5659_PWR_FV2, 0);
 		regmap_update_bits(rt5659->regmap, RT5659_DIG_MISC,
 			RT5659_DIG_GATE_CTRL, 0);
+		regmap_read(rt5659->regmap, RT5659_DEVICE_ID, &val);
 		break;
 
 	default:
@@ -5086,6 +5089,8 @@ static int rt5659_remove(struct snd_soc_codec *codec)
 #ifdef CONFIG_PM
 static int rt5659_suspend(struct snd_soc_codec *codec)
 {
+	unsigned int val;
+
 	snd_soc_update_bits(codec, RT5659_PWR_DIG_2,
 		RT5659_PWR_DAC_MF_L, 0);
 	snd_soc_update_bits(codec, RT5659_I2S1_SDP, RT5659_I2S_MS_MASK,
@@ -5094,6 +5099,7 @@ static int rt5659_suspend(struct snd_soc_codec *codec)
 		RT5659_I2S_MS_S);
 	snd_soc_update_bits(codec, RT5659_I2S3_SDP, RT5659_I2S_MS_MASK,
 		RT5659_I2S_MS_S);
+	regmap_read(rt5659->regmap, RT5659_DEVICE_ID, &val);
 
 	return 0;
 }
