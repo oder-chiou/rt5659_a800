@@ -1563,7 +1563,7 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 
 		regdd = snd_soc_read(codec, RT5659_IL_CMD_3);
 		snd_soc_update_bits(codec, RT5659_IL_CMD_3, 0xf, 0x7);
-		snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_2, 0x8000, 0x8000);
+		snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_2, 0xc000, 0xc000);
 
 		for (i = 0; i < 5; i++) {
 			msleep(10);
@@ -1609,7 +1609,7 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 	}
 
 	snd_soc_update_bits(codec, RT5659_IRQ_CTRL_2, 0x8, 0x0);
-	snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_2, 0x8000, 0x0);
+	snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_2, 0xc000, 0x0);
 	snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_1, 0xfff0, 0xfff0);
 
 	if (action) {
