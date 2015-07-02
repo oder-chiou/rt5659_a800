@@ -3305,8 +3305,10 @@ static int rt5659_i2s_event(struct snd_soc_dapm_widget *w,
 			if (rt5659->master[RT5659_AIF1]) {
 				cancel_delayed_work_sync(
 					&rt5659->i2s_switch_slave_work[RT5659_AIF1]);
+/*
 				snd_soc_update_bits(codec, RT5659_I2S1_SDP,
 					RT5659_I2S_MS_MASK, RT5659_I2S_MS_M);
+*/
 			}
 			break;
 		case RT5659_PWR_I2S2_BIT:
@@ -3837,8 +3839,8 @@ static const struct snd_soc_dapm_widget rt5659_dapm_widgets[] = {
 		RT5659_PWR_DAC_S1F_BIT, 0, rt5659_sto1_filter_event,
 		SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMU |
 		SND_SOC_DAPM_PRE_PMD),
-	SND_SOC_DAPM_SUPPLY("DAC Mono Left Filter", SND_SOC_NOPM,
-		0, 0, rt5659_monol_filter_event,
+	SND_SOC_DAPM_SUPPLY("DAC Mono Left Filter", RT5659_PWR_DIG_2,
+		RT5659_PWR_DAC_MF_L_BIT, 0, rt5659_monol_filter_event,
 		SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMU |
 		SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMD),
 	SND_SOC_DAPM_SUPPLY("DAC Mono Right Filter", RT5659_PWR_DIG_2,
@@ -4992,6 +4994,8 @@ static int rt5659_set_bias_level(struct snd_soc_codec *codec,
 
 	switch (level) {
 	case SND_SOC_BIAS_PREPARE:
+		regmap_update_bits(rt5659->regmap, RT5659_I2S1_SDP,
+			RT5659_I2S_MS_MASK, RT5659_I2S_MS_M);
 		regmap_update_bits(rt5659->regmap, RT5659_DIG_MISC,
 			RT5659_DIG_GATE_CTRL, RT5659_DIG_GATE_CTRL);
 		break;
@@ -5007,8 +5011,11 @@ static int rt5659_set_bias_level(struct snd_soc_codec *codec,
 			regmap_update_bits(rt5659->regmap, RT5659_PWR_ANLG_1,
 				RT5659_PWR_FV1 | RT5659_PWR_FV2,
 				RT5659_PWR_FV1 | RT5659_PWR_FV2);
+		} else {
+			regmap_update_bits(rt5659->regmap, RT5659_I2S1_SDP,
+				RT5659_I2S_MS_MASK, RT5659_I2S_MS_S);
+			regmap_read(rt5659->regmap, RT5659_DEVICE_ID, &val);
 		}
-		regmap_read(rt5659->regmap, RT5659_DEVICE_ID, &val);
 		break;
 
 	case SND_SOC_BIAS_OFF:
@@ -5071,9 +5078,6 @@ static int rt5659_probe(struct snd_soc_codec *codec)
 	rt5659_reg_init(codec);
 	rt5659_set_bias_level(codec, SND_SOC_BIAS_OFF);
 
-	regmap_update_bits(rt5659->regmap, RT5659_PWR_DIG_2,
-		RT5659_PWR_DAC_MF_L, RT5659_PWR_DAC_MF_L);
-
 	ret = device_create_file(codec->dev, &dev_attr_codec_reg);
 	if (ret != 0) {
 		dev_err(codec->dev,
@@ -5126,32 +5130,19 @@ static int rt5659_remove(struct snd_soc_codec *codec)
 #ifdef CONFIG_PM
 static int rt5659_suspend(struct snd_soc_codec *codec)
 {
-	unsigned int val;
-
-	snd_soc_update_bits(codec, RT5659_PWR_DIG_2,
-		RT5659_PWR_DAC_MF_L, 0);
 	snd_soc_update_bits(codec, RT5659_I2S1_SDP, RT5659_I2S_MS_MASK,
 		RT5659_I2S_MS_S);
 	snd_soc_update_bits(codec, RT5659_I2S2_SDP, RT5659_I2S_MS_MASK,
 		RT5659_I2S_MS_S);
 	snd_soc_update_bits(codec, RT5659_I2S3_SDP, RT5659_I2S_MS_MASK,
 		RT5659_I2S_MS_S);
-	regmap_read(rt5659->regmap, RT5659_DEVICE_ID, &val);
+	snd_soc_read(codec, RT5659_DEVICE_ID);
 
 	return 0;
 }
 
 static int rt5659_resume(struct snd_soc_codec *codec)
 {
-	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
-
-	snd_soc_update_bits(codec, RT5659_PWR_DIG_2,
-		RT5659_PWR_DAC_MF_L, RT5659_PWR_DAC_MF_L);
-
-	if (rt5659->master[RT5659_AIF1])
-		snd_soc_update_bits(codec, RT5659_I2S1_SDP, RT5659_I2S_MS_MASK,
-			RT5659_I2S_MS_M);
-
 	return 0;
 }
 #else
@@ -5517,15 +5508,15 @@ void rt5659_calibrate(struct rt5659_priv *rt5659)
 
 static void rt5659_i2s_switch_slave_work_0(struct work_struct *work)
 {
-/*
 	struct rt5659_priv *rt5659 =
 		container_of(work, struct rt5659_priv,
 		i2s_switch_slave_work[RT5659_AIF1].work);
 	struct snd_soc_codec *codec = rt5659->codec;
-
+/*
 	snd_soc_update_bits(codec, RT5659_I2S1_SDP, RT5659_I2S_MS_MASK,
 		RT5659_I2S_MS_S);
 */
+	snd_soc_read(codec, RT5659_DEVICE_ID);
 }
 
 static void rt5659_i2s_switch_slave_work_1(struct work_struct *work)
@@ -5537,6 +5528,7 @@ static void rt5659_i2s_switch_slave_work_1(struct work_struct *work)
 
 	snd_soc_update_bits(codec, RT5659_I2S2_SDP, RT5659_I2S_MS_MASK,
 		RT5659_I2S_MS_S);
+	snd_soc_read(codec, RT5659_DEVICE_ID);
 }
 
 static void rt5659_i2s_switch_slave_work_2(struct work_struct *work)
@@ -5548,6 +5540,7 @@ static void rt5659_i2s_switch_slave_work_2(struct work_struct *work)
 
 	snd_soc_update_bits(codec, RT5659_I2S3_SDP, RT5659_I2S_MS_MASK,
 		RT5659_I2S_MS_S);
+	snd_soc_read(codec, RT5659_DEVICE_ID);
 }
 
 int rt5659_cal_data_write_efs(struct rt5659_cal_data *cal_data)
