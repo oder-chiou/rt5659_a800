@@ -32,12 +32,12 @@
 
 #include "rt5659.h"
 
-#include "../../arch/arm/mach-exynos/common.h"
-void sec_debug_set_upload_magic(unsigned magic, char *str);
-
 #ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
 static struct snd_soc_codec *registered_codec;
 #endif
+
+static struct class *codec_efs_class;
+static struct device *codec_efs_dev;
 
 /* Delay(ms) after powering on DMIC for avoiding pop */
 static int dmic_power_delay = 450;
@@ -62,8 +62,6 @@ static struct reg_default init_list[] = {
 	{RT5659_MONO_GAIN,		0x0003},
 	{RT5659_CLASSD_0,		0x2021},
 	{RT5659_HP_CALIB_CTRL_7,	0x0000},
-	{RT5659_IN1_IN2,		0x4000}, /*Set BST1 to 36dB*/
-	{RT5659_IN3_IN4,		0xc0c0}, /*Set BST3/4 to 36dB*/
 	/* Jack detect (JD3 to IRQ)*/
 	{RT5659_RC_CLK_CTRL,		0x9000},
 	{RT5659_GPIO_CTRL_1,		0x8000}, /*set GPIO1 to IRQ*/
@@ -1655,7 +1653,7 @@ static int rt5659_cal_data_read(struct rt5659_priv *rt5659,
 			(cal_offset_lsb >> 2);
 	}
 	regmap_update_bits(rt5659->regmap, RT5659_HPR_GAIN, RT5659_G_HP, 0);
-	
+
 	regmap_update_bits(rt5659->regmap, RT5659_MONO_DRE_CTRL_1, 0x8000,
 		0x0000);
 
@@ -1681,7 +1679,7 @@ const unsigned short hp_cal_r_offset[0x20] = {
 	397, 433, 472, 515, 561, 612, 667, 727
 };
 
-static int rt5659_cal_data_write(struct rt5659_priv *rt5659, 
+static int rt5659_cal_data_write(struct rt5659_priv *rt5659,
 	struct rt5659_cal_data *cal_data)
 {
 	unsigned short i;
@@ -4964,6 +4962,26 @@ static ssize_t rt5659_codec_adb_store(struct device *dev,
 
 static DEVICE_ATTR(codec_reg_adb, 0664, rt5659_codec_adb_show, rt5659_codec_adb_store);
 
+static ssize_t rt5659_codec_efs_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+/* There is nothing to do */
+	return 0;
+}
+
+static ssize_t rt5659_codec_efs_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct rt5659_priv *rt5659 = i2c_get_clientdata(client);
+
+	wake_up_interruptible(&rt5659->waitqueue_cal);
+
+	return count;
+}
+
+static DEVICE_ATTR(codec_efs_mount, 0664, rt5659_codec_efs_show, rt5659_codec_efs_store);
+
 static int rt5659_set_bias_level(struct snd_soc_codec *codec,
 			enum snd_soc_bias_level level)
 {
@@ -5070,6 +5088,22 @@ static int rt5659_probe(struct snd_soc_codec *codec)
 		return ret;
 	}
 
+	codec_efs_class = class_create(THIS_MODULE, CODEC_EFS_CLASS_NAME);
+	if (IS_ERR(codec_efs_class))
+		dev_err(codec->dev, "Failed to create class(codec_efs_class)\n");
+
+	codec_efs_dev = device_create(codec_efs_class, NULL, 0, rt5659, CODEC_EFS_DEV_NAME);
+	if (IS_ERR(codec_efs_dev))
+		dev_err(codec->dev, "Failed to create device(codec_efs_dev)!= %ld\n",
+				IS_ERR(codec_efs_dev));
+
+	ret = device_create_file(codec_efs_dev, &dev_attr_codec_efs_mount);
+	if (ret != 0) {
+		dev_err(codec->dev,
+			"Failed to create codec_efs_mount sysfs files: %d\n", ret);
+		return ret;
+	}
+
 	schedule_delayed_work(&rt5659->calibrate_work, msecs_to_jiffies(0));
 
 	return 0;
@@ -5082,6 +5116,9 @@ static int rt5659_remove(struct snd_soc_codec *codec)
 	regmap_write(rt5659->regmap, RT5659_RESET, 0);
 	device_remove_file(codec->dev, &dev_attr_codec_reg);
 	device_remove_file(codec->dev, &dev_attr_codec_reg_adb);
+	device_remove_file(codec->dev, &dev_attr_codec_efs_mount);
+	device_destroy(codec_efs_class, 0);
+	class_destroy(codec_efs_class);
 
 	return 0;
 }
@@ -5513,41 +5550,21 @@ static void rt5659_i2s_switch_slave_work_2(struct work_struct *work)
 		RT5659_I2S_MS_S);
 }
 
-void print_cal_data(struct rt5659_cal_data *cal_data)
-{
-	int i;
-
-	for (i = 0; i < 0x20; i++) {
-		pr_info("[JJ] hp_cal_l[%d] - 0x%04x\n", i, cal_data->hp_cal_l[i]);
-		pr_info("[JJ] hp_cal_r[%d] - 0x%04x\n", i, cal_data->hp_cal_r[i]);
-	}
-	for (i = 0; i < 0xd; i++) {
-		pr_info("[JJ] mono_cal[%d] - 0x%04x\n", i, cal_data->mono_cal[i]);
-	}
-}
-
 int rt5659_cal_data_write_efs(struct rt5659_cal_data *cal_data)
 {
 	struct file *fp = NULL;
 	mm_segment_t oldfs = {0};
 	char buf[EFS_CAL_BUF_SIZE];
 	int ret = 0;
-	int retry_cnt = 10;
 	int size = sizeof(struct rt5659_cal_data);
 
-print_cal_data(cal_data);
 	oldfs = get_fs();
 	set_fs(get_ds());
-retry:
+
 	fp = filp_open(CAL_DATA_EFS, O_WRONLY | O_CREAT | O_TRUNC, 0660);
 
 	if (IS_ERR(fp)) {
 		pr_err("%s : File open error\n", __func__);
-		retry_cnt--;
-		if (retry_cnt) {
-			msleep(50);
-			goto retry;
-		}
 		ret = -1;
 	} else {
 		if (fp->f_mode & FMODE_WRITE) {
@@ -5571,21 +5588,15 @@ int rt5659_cal_data_read_efs(struct rt5659_cal_data *cal_data)
 	mm_segment_t oldfs = {0};
 	char buf[EFS_CAL_BUF_SIZE];
 	int ret = 0;
-	int retry_cnt = 10;
 	int size = sizeof(struct rt5659_cal_data);
 
 	oldfs = get_fs();
 	set_fs(get_ds());
-retry:
+
 	fp = filp_open(CAL_DATA_EFS, O_RDONLY, 0);
 
 	if (IS_ERR(fp)) {
 		pr_err("%s : File open error\n", __func__);
-		retry_cnt--;
-		if (retry_cnt) {
-			msleep(50);
-			goto retry;
-		}
 		ret = -1;
 	} else {
 		ret = kernel_read(fp, 0, buf, size);
@@ -5595,7 +5606,6 @@ retry:
 			memcpy(cal_data, buf, size);
 
 			pr_info("%s : File read OK(%d)\n", __func__, ret);
-print_cal_data(cal_data);
 		}
 		else
 			pr_err("%s : File read fail\n", __func__);
@@ -5608,31 +5618,22 @@ int rt5659_check_efs_mounted(void)
 {
 	struct file *fp = NULL;
 	mm_segment_t oldfs = {0};
-	int check_cnt = 30;
 	int ret = 0;
 
 	oldfs = get_fs();
 	set_fs(get_ds());
 
-	while (true) {
-		fp = filp_open("/efs/", O_RDONLY, 0);
-		
-		if (IS_ERR(fp)) {
-			pr_err("%s : efs is not mount yet\n", __func__);
-			check_cnt--;
-			if (check_cnt < 0) {
-				pr_err("%s : efs mount fail\n", __func__);
-				ret = false;
-				break;
-			}
-			msleep(200);
-		} else {
-			pr_info("%s : efs is mounted\n", __func__);
-			filp_close(fp, NULL);
-			ret = true;
-			break;
-		}
+	fp = filp_open("/efs/", O_RDONLY, 0);
+
+	if (IS_ERR(fp)) {
+		pr_err("%s : efs is not mount yet\n", __func__);
+		ret = false;
+	} else {
+		pr_info("%s : efs is mounted\n", __func__);
+		filp_close(fp, NULL);
+		ret = true;
 	}
+
 	set_fs(oldfs);
 	return ret;
 }
@@ -5646,15 +5647,17 @@ static void rt5659_calibrate_handler(struct work_struct *work)
 
 	pr_info("%s start!! \n", __func__);
 
-	if (rt5659_check_efs_mounted()) {
+	if (wait_event_interruptible_timeout(rt5659->waitqueue_cal,
+			rt5659_check_efs_mounted(), msecs_to_jiffies(10000))) {
+
 		if (rt5659_cal_data_read_efs(&cal_data) == size) {
 			rt5659_cal_data_write(rt5659, &cal_data);
 		} else {
-//panic("JJ");
 			pr_info("%s: rt5659_calibrate start\n", __func__);
 			rt5659_calibrate(rt5659);
 			pr_info("%s: rt5659_calibrate end\n", __func__);
 			rt5659_cal_data_read(rt5659, &cal_data);
+
 			if (rt5659_cal_data_write_efs(&cal_data) == size) {
 				pr_info("%s: EFS write success\n", __func__);
 			} else {
@@ -5662,12 +5665,8 @@ static void rt5659_calibrate_handler(struct work_struct *work)
 			}
 		}
 	} else {
-panic("JJ");
 		rt5659_calibrate(rt5659);
 	}
-//pr_err("[JJ] System restart!!!\n");
-//sec_debug_set_upload_magic(0x0, NULL);
-//exynos5_restart(0, 0);
 	pr_info("%s end!! \n", __func__);
 }
 
@@ -5857,6 +5856,7 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 	INIT_DELAYED_WORK(&rt5659->i2s_switch_slave_work[RT5659_AIF3],
 		rt5659_i2s_switch_slave_work_2);
 	INIT_DELAYED_WORK(&rt5659->calibrate_work, rt5659_calibrate_handler);
+	init_waitqueue_head(&rt5659->waitqueue_cal);
 
 	return snd_soc_register_codec(&i2c->dev, &soc_codec_dev_rt5659,
 			rt5659_dai, ARRAY_SIZE(rt5659_dai));
