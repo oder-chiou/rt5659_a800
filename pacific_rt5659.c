@@ -253,7 +253,7 @@ static int pacific_aif_startup(struct snd_pcm_substream *substream)
 			rtd->dai_link->name, substream->stream,
 			codec_dai->playback_active, codec_dai->capture_active);
 #ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
-	if (substream->stream == SNDRV_PCM_STREAM_CAPTURE && pacific_rt5659_priv.jd_status) {
+	if (strcmp(rtd->dai_link->name, "NXP")!=0 && substream->stream == SNDRV_PCM_STREAM_CAPTURE && pacific_rt5659_priv.jd_status) {
 		pacific_rt5659_priv.earmic_enabled = true;
 		rt5659_dynamic_control_micbias(MIC_BIAS_V2P70V);
 	}
@@ -275,7 +275,7 @@ static void pacific_aif_shutdown(struct snd_pcm_substream *substream)
 			rtd->dai_link->name, substream->stream,
 			codec_dai->name, codec_dai->playback_active);
 #ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
-	if (substream->stream == SNDRV_PCM_STREAM_CAPTURE && pacific_rt5659_priv.jd_status) {
+	if (strcmp(rtd->dai_link->name, "NXP")!=0 && substream->stream == SNDRV_PCM_STREAM_CAPTURE && pacific_rt5659_priv.jd_status) {
 		pacific_rt5659_priv.earmic_enabled = false;
 		rt5659_dynamic_control_micbias(rt5659->pdata.dynamic_micb_ctrl_voltage);
 	}
@@ -684,7 +684,8 @@ static int pacific_late_probe(struct snd_soc_card *card)
 
 	setup_timer(&priv->jd_check_timer, jd_check_callback, 0);
 	INIT_WORK(&priv->jd_check_work, jd_check_handler);
-	mutex_init(&priv->mutex);
+    mutex_init(&priv->mutex);
+
 
 	if (gpio_is_valid(priv->rt5659_hp_jack_gpio.gpio)) {
 		snd_soc_jack_new(codec, "Headphone Jack", SND_JACK_HEADPHONE,
@@ -697,10 +698,11 @@ static int pacific_late_probe(struct snd_soc_card *card)
 		snd_soc_jack_add_gpios(jack, 1, &priv->rt5659_hp_jack_gpio);
 
 		snd_jack_set_key(jack->jack, SND_JACK_BTN_0, KEY_MEDIA);
+		snd_jack_set_key(jack->jack, SND_JACK_BTN_1, KEY_VOICECOMMAND);
 		snd_jack_set_key(jack->jack, SND_JACK_BTN_2, KEY_VOLUMEUP);
 		snd_jack_set_key(jack->jack, SND_JACK_BTN_3, KEY_VOLUMEDOWN);
 	}
-	
+
 	return 0;
 }
 
