@@ -104,6 +104,7 @@
 		<!-- Output stage -->
 		<!-- media playback -->
 		<path name="media-handset">
+			<ctl name="Receiver Control" value="Enable"/>
 			<ctl name="Mono DAC MIXL DAC L1 Switch" value="1"/>
 			<ctl name="Mono DAC MIXL DAC R1 Switch" value="1"/>
 			<ctl name="Mono MIX DAC L2 Switch" value="1"/>
@@ -126,7 +127,15 @@
 		</path>
 
 		<path name="media-speaker-headset">
-			<path name="media-speaker" />
+			<ctl name="Mono DAC MIXL DAC L1 Switch" value="1"/>
+			<ctl name="Mono DAC MIXR DAC R1 Switch" value="1"/>
+			<ctl name="Mono ADC L1 Mux" value="Mono DAC MIXL"/>
+			<ctl name="Mono ADC R1 Mux" value="Mono DAC MIXR"/>
+			<ctl name="Mono ADC MIXL ADC1 Switch" value="1"/>
+			<ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
+			<ctl name="AD MONOL Clk Sel" value="clk_i2s3_track"/>
+			<ctl name="AD MONOR Clk Sel" value="clk_i2s3_track"/>
+			<ctl name="IF3 ADC Mux" value="IF_ADC2"/>
 			<path name="media-headset" />
 		</path>
 
@@ -1339,6 +1348,14 @@
 		</path>
 
 		<path name="loopback_packet-2nd-mic">
+			<ctl name="Headset Mic Switch" value="0"/>
+			<ctl name="Stereo DAC MIXR DAC L1 Switch" value="0"/>
+			<ctl name="Stereo DAC MIXR DAC L2 Switch" value="0"/>
+			<ctl name="Stereo DAC MIXL DAC R1 Switch" value="0"/>
+			<ctl name="Stereo DAC MIXL DAC L2 Switch" value="0"/>
+			<ctl name="Mono ADC MIXR ADC1 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXR ADC2 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="0"/>
 			<ctl name="Stereo ADC Control" value="Enable"/>
 			<ctl name="Mono ADC L Control" value="Enable"/>
 			<ctl name="Mono ADC R Control" value="Enable"/>
@@ -1350,10 +1367,10 @@
 			<ctl name="Stereo1 ADC1 Source" value="ADC"/>
 			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="1"/>
 			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="1"/>
-			<ctl name="Sub Mic Switch" value="1" />
 		</path>
 
 		<path name="loopback_packet-headset-mic">
+			<ctl name="IF3 ADC Mux" value="Stereo2_ADC_L/R"/>
 			<path name="incall_nb-headset-mic" />
 		</path>
 
@@ -2759,6 +2776,7 @@
 			<ctl name="IN4 Boost Volume" value="44"/>
 			<ctl name="IN3 Boost Volume" value="44"/>
 			<ctl name="STO1 ADC Capture Volume" value="47"/>
+			<ctl name="Sub Mic Switch" value="1" />
 		</path>
 
 		<path name="gain-loopback_packet-3rd-mic">

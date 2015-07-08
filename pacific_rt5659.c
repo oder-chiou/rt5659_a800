@@ -39,6 +39,7 @@
 #include "i2s-regs.h"
 #include "../codecs/rt5659.h"
 
+#define WAKE_LOCK_TIME		(HZ * 5)	/* 5 sec */
 /* PACIFIC use CLKOUT from AP */
 #define PACIFIC_MCLK_FREQ	24000000
 
@@ -61,6 +62,8 @@ struct rt5659_machine_priv {
 	bool earmic_enabled;
 #endif
 	struct mutex mutex;
+	struct wake_lock jack_wake_lock;
+	int det_delay_time;
 };
 
 static struct rt5659_machine_priv pacific_rt5659_priv = {
@@ -69,7 +72,7 @@ static struct rt5659_machine_priv pacific_rt5659_priv = {
 		.invert = 1,
 		.report = SND_JACK_HEADSET | SND_JACK_BTN_0 | SND_JACK_BTN_1
 			| SND_JACK_BTN_2 | SND_JACK_BTN_3,
-		.debounce_time = 200,
+		.debounce_time = 0,
 		.wake = true,
 		.jack_status_check = rt5659_jack_status_check,
 	},
@@ -115,6 +118,13 @@ int rt5659_jack_status_check(void)
 #endif
 	int report = 0, ret;
 
+	/* prevent suspend to allow user space to respond to switch */
+	if (codec->card->instantiated)
+		wake_lock_timeout(&pacific_rt5659_priv.jack_wake_lock, WAKE_LOCK_TIME);
+
+	msleep(pacific_rt5659_priv.det_delay_time);
+	pr_info("%s start\n", __func__);
+
 	mutex_lock(&pacific_rt5659_priv.mutex);
 
 	if (rt5659_check_jd_status(codec) && !pacific_rt5659_priv.jd_status) {
@@ -123,12 +133,14 @@ int rt5659_jack_status_check(void)
 		switch_set_state(&rt5659_headset_switch, ret);
 		if (ret == 1) {
 			report |= SND_JACK_HEADSET;
+			pacific_rt5659_priv.det_delay_time = 50;
 		} else {
 			report |= SND_JACK_HEADPHONE;
 		}
 		printk("%s: Jack inserted - %d\n", __func__, ret);
 
 	} else if (rt5659_check_jd_status(codec) && pacific_rt5659_priv.jd_status) {
+		pr_info("%s esle if\n", __func__);
 #ifdef CONFIG_DYNAMIC_MICBIAS_CONTROL_RT5659
 		if (!pacific_rt5659_priv.earmic_enabled)
 			rt5659_dynamic_control_micbias(MIC_BIAS_V2P70V);
@@ -179,6 +191,7 @@ int rt5659_jack_status_check(void)
 		pacific_rt5659_priv.jd_status = false;
 		rt5659_get_jack_type(codec, 0);
 		switch_set_state(&rt5659_headset_switch, 0);
+		pacific_rt5659_priv.det_delay_time = 200;
 	}
 
 	mutex_unlock(&pacific_rt5659_priv.mutex);
@@ -686,7 +699,6 @@ static int pacific_late_probe(struct snd_soc_card *card)
 	INIT_WORK(&priv->jd_check_work, jd_check_handler);
     mutex_init(&priv->mutex);
 
-
 	if (gpio_is_valid(priv->rt5659_hp_jack_gpio.gpio)) {
 		snd_soc_jack_new(codec, "Headphone Jack", SND_JACK_HEADPHONE,
 				jack);
@@ -702,6 +714,9 @@ static int pacific_late_probe(struct snd_soc_card *card)
 		snd_jack_set_key(jack->jack, SND_JACK_BTN_2, KEY_VOLUMEUP);
 		snd_jack_set_key(jack->jack, SND_JACK_BTN_3, KEY_VOLUMEDOWN);
 	}
+
+	priv->det_delay_time = 200;
+	wake_lock_init(&priv->jack_wake_lock, WAKE_LOCK_SUSPEND, "jack_det");
 
 	return 0;
 }
@@ -895,6 +910,8 @@ static int pacific_audio_remove(struct platform_device *pdev)
 	snd_soc_jack_free_gpios(&priv->rt5659_hp_jack, 1,
 				&priv->rt5659_hp_jack_gpio);
 
+	wake_lock_destroy(&priv->jack_wake_lock);
+
 	return 0;
 }
 
@@ -910,6 +927,9 @@ static struct platform_driver pacific_audio_driver = {
 		.owner	= THIS_MODULE,
 		.pm = &snd_soc_pm_ops,
 		.of_match_table = of_match_ptr(pacific_arizona_of_match),
+#ifdef CONFIG_MULTITHREAD_PROBE
+		.multithread_probe = 1,
+#endif
 	},
 	.probe	= pacific_audio_probe,
 	.remove	= pacific_audio_remove,
