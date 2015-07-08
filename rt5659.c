@@ -72,6 +72,7 @@ static struct reg_default init_list[] = {
 	{RT5659_ASRC_8,			0x0120},
 	{RT5659_4BTN_IL_CMD_1,		0x000b},
 	{RT5659_MONO_DRE_CTRL_2, 	0x003a},
+	{RT5659_DUMMY_2, 		0x001d},
 };
 #define RT5659_INIT_REG_LEN ARRAY_SIZE(init_list)
 
@@ -1519,18 +1520,27 @@ EXPORT_SYMBOL(rt5659_button_detect);
 int rt5659_check_jd_status(struct snd_soc_codec *codec)
 {
 	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
-	int val;
+	int val = 0, val1 = 0, count = 0;
+	pr_info("%s start\n", __func__);
 
 	mutex_lock(&rt5659->calibrate_mutex);
+	while(snd_soc_read(codec, RT5659_INT_ST_1) == 0xffffffff && count <= 20) {
+		msleep(10);
+		pr_err("i2c read fail %d\n", count);
+		count++;
+	}
+	val1 = snd_soc_read(codec, RT5659_INT_ST_1);
+	pr_info("%s : val1 = %x\n", __func__, val1);
+
 	val = snd_soc_read(codec, RT5659_INT_ST_1) & 0x0080;
 	mutex_unlock(&rt5659->calibrate_mutex);
-
+	pr_info("%s : %x\n", __func__, val);
 	if (!val) {  /* Jack insert */
-		pr_debug("%s-Jack In\n", __func__);
+		pr_info("%s-Jack In\n", __func__);
 		return 1;
 	}
 	else { /* jack out */
-		pr_debug("%s-Jack Out\n", __func__);
+		pr_info("%s-Jack Out\n", __func__);
 		return 0;
 	}
 }
@@ -1565,8 +1575,9 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 		snd_soc_update_bits(codec, RT5659_IL_CMD_3, 0xf, 0x7);
 		snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_2, 0xc000, 0xc000);
 
+		msleep(50);
 		for (i = 0; i < 5; i++) {
-			msleep(10);
+			msleep(5);
 
 			if (snd_soc_read(codec, RT5659_JD_CTRL_3) & 0x8000)
 				headset++;
@@ -1593,6 +1604,11 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 		}
 	}
 
+	snd_soc_update_bits(codec, RT5659_IRQ_CTRL_2, 0x8, 0x0);
+	snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_2, 0x8000, 0x0);
+	snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_2, 0x4000, 0x0);
+	snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_1, 0xfff0, 0xfff0);
+
 	if (codec->card->instantiated) {
 		snd_soc_dapm_disable_pin(&codec->dapm, "MICBIAS1");
 		snd_soc_dapm_disable_pin(&codec->dapm, "Mic Det Power");
@@ -1607,11 +1623,7 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 		snd_soc_update_bits(codec, RT5659_PWR_VOL, RT5659_PWR_MIC_DET,
 			0);
 	}
-
-	snd_soc_update_bits(codec, RT5659_IRQ_CTRL_2, 0x8, 0x0);
-	snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_2, 0xc000, 0x0);
-	snd_soc_update_bits(codec, RT5659_4BTN_IL_CMD_1, 0xfff0, 0xfff0);
-
+	
 	if (action) {
 		mutex_unlock(&rt5659->calibrate_mutex);
 		return 2;
