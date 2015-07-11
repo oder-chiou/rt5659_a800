@@ -245,7 +245,6 @@ const struct snd_soc_dapm_route pacific_rt5659_dapm_routes[] = {
 	{ "RCV", NULL, "MONOOUT" },
 	{ "SPK", NULL, "SPOL" },
 	{ "SPK", NULL, "SPOR" },
-	{ "IN1P", NULL, "MICBIAS1" },
 	{ "IN1P", NULL, "Headset Mic" },
 	{ "IN1N", NULL, "Headset Mic" },
 	{ "IN3P", NULL, "MICBIAS3" },

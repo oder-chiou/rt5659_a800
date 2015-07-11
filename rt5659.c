@@ -1615,14 +1615,13 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 		snd_soc_dapm_sync(&codec->dapm);
 	}
 
-	if (codec->dapm.bias_level == SND_SOC_BIAS_OFF) {
-		snd_soc_update_bits(codec, RT5659_PWR_ANLG_1,
-			RT5659_PWR_MB | RT5659_PWR_VREF1 | RT5659_PWR_VREF2, 0);
-		snd_soc_update_bits(codec, RT5659_PWR_ANLG_2, RT5659_PWR_MB1,
-			0);
-		snd_soc_update_bits(codec, RT5659_PWR_VOL, RT5659_PWR_MIC_DET,
-			0);
-	}
+	snd_soc_update_bits(codec, RT5659_PWR_ANLG_2, RT5659_PWR_MB1, 0);
+	snd_soc_update_bits(codec, RT5659_PWR_VOL, RT5659_PWR_MIC_DET, 0);
+
+	if (codec->dapm.bias_level == SND_SOC_BIAS_OFF)
+		regmap_update_bits(rt5659->regmap, RT5659_PWR_ANLG_1,
+			RT5659_PWR_MB | RT5659_PWR_VREF1 | RT5659_PWR_VREF2 |
+			RT5659_PWR_FV1 | RT5659_PWR_FV2, 0);
 
 	if (action) {
 		mutex_unlock(&rt5659->calibrate_mutex);
@@ -5005,6 +5004,7 @@ static int rt5659_set_bias_level(struct snd_soc_codec *codec,
 			enum snd_soc_bias_level level)
 {
 	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
+	unsigned int value;
 
 	pr_debug("%s: level = %d\n", __func__, level);
 
@@ -5030,9 +5030,12 @@ static int rt5659_set_bias_level(struct snd_soc_codec *codec,
 
 	case SND_SOC_BIAS_OFF:
 		regmap_update_bits(rt5659->regmap, RT5659_PWR_DIG_1, RT5659_PWR_LDO, 0);
-		regmap_update_bits(rt5659->regmap, RT5659_PWR_ANLG_1, RT5659_PWR_MB |
-			RT5659_PWR_VREF1 | RT5659_PWR_VREF2 | RT5659_PWR_FV1 |
-			RT5659_PWR_FV2, 0);
+		regmap_read(rt5659->regmap, RT5659_PWR_ANLG_2, &value);
+		if (!(value & RT5659_PWR_MB1)) {
+			regmap_update_bits(rt5659->regmap, RT5659_PWR_ANLG_1, RT5659_PWR_MB |
+				RT5659_PWR_VREF1 | RT5659_PWR_VREF2 | RT5659_PWR_FV1 |
+				RT5659_PWR_FV2, 0);
+		}
 		regmap_update_bits(rt5659->regmap, RT5659_DIG_MISC,
 			RT5659_DIG_GATE_CTRL, 0);
 		break;
