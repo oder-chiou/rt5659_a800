@@ -1781,7 +1781,7 @@ struct rt5659_priv {
 	struct regmap *regmap;
 	struct i2c_client *i2c;
 	struct delayed_work i2s_switch_slave_work[RT5659_AIFS];
-	struct delayed_work i2s1_depop_work;
+	struct delayed_work dac1_depop_work, dac2l_depop_work, dac2r_depop_work;
 	struct delayed_work calibrate_work;
 	wait_queue_head_t waitqueue_cal;
 	struct mutex calibrate_mutex;
@@ -1806,7 +1806,9 @@ struct rt5659_priv {
 	bool dac1_en, dac2_en;
 	bool hp_en, rcv_en, sto_adc_en, mono_adcl_en, mono_adcr_en;
 	unsigned int impedance_value;
-	unsigned int sto_dac_mixer, mono_dac_mixer;
+	unsigned int dac1_sto_dac_mixer, dac1_mono_dac_mixer;
+	unsigned int dac2l_sto_dac_mixer, dac2l_mono_dac_mixer;
+	unsigned int dac2r_sto_dac_mixer, dac2r_mono_dac_mixer;
 
 	unsigned int adb_reg_addr[0x100];
 	unsigned int adb_reg_value[0x100];

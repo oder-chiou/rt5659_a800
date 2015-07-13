@@ -3383,9 +3383,9 @@ static int rt5659_sto1_filter_event(struct snd_soc_dapm_widget *w,
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
-		rt5659->sto_dac_mixer =
+		rt5659->dac1_sto_dac_mixer =
 			snd_soc_read(codec, RT5659_STO_DAC_MIXER);
-		rt5659->mono_dac_mixer =
+		rt5659->dac1_mono_dac_mixer =
 			snd_soc_read(codec, RT5659_MONO_DAC_MIXER);
 
 		snd_soc_update_bits(codec, RT5659_STO_DAC_MIXER,
@@ -3401,19 +3401,8 @@ static int rt5659_sto1_filter_event(struct snd_soc_dapm_widget *w,
 		break;
 
 	case SND_SOC_DAPM_POST_PMU:
-		if (rt5659->dac2_en) {
-			schedule_delayed_work(&rt5659->i2s1_depop_work,
-				msecs_to_jiffies(5));
-		} else {
-			snd_soc_update_bits(codec, RT5659_STO_DAC_MIXER,
-				RT5659_M_DAC_L1_STO_L | RT5659_M_DAC_R1_STO_L |
-				RT5659_M_DAC_L1_STO_R | RT5659_M_DAC_R1_STO_R,
-				rt5659->sto_dac_mixer);
-			snd_soc_update_bits(codec, RT5659_MONO_DAC_MIXER,
-				RT5659_M_DAC_L1_MONO_L | RT5659_M_DAC_R1_MONO_L |
-				RT5659_M_DAC_L1_MONO_R | RT5659_M_DAC_R1_MONO_R,
-				rt5659->mono_dac_mixer);
-		}
+		schedule_delayed_work(&rt5659->dac1_depop_work,
+			msecs_to_jiffies(0));
 		break;
 
 	default:
@@ -3427,14 +3416,16 @@ static int rt5659_monol_filter_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = w->codec;
-	static unsigned int sto_dac_mixer, mono_dac_mixer;
+	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
 
 	pr_debug("%s\n", __func__);
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
-		sto_dac_mixer = snd_soc_read(codec, RT5659_STO_DAC_MIXER);
-		mono_dac_mixer = snd_soc_read(codec, RT5659_MONO_DAC_MIXER);
+		rt5659->dac2l_sto_dac_mixer =
+			snd_soc_read(codec, RT5659_STO_DAC_MIXER);
+		rt5659->dac2l_mono_dac_mixer =
+			snd_soc_read(codec, RT5659_MONO_DAC_MIXER);
 
 		snd_soc_update_bits(codec, RT5659_STO_DAC_MIXER,
 			RT5659_M_DAC_L2_STO_L | RT5659_M_DAC_L2_STO_R,
@@ -3446,12 +3437,8 @@ static int rt5659_monol_filter_event(struct snd_soc_dapm_widget *w,
 		break;
 
 	case SND_SOC_DAPM_POST_PMU:
-		snd_soc_update_bits(codec, RT5659_STO_DAC_MIXER,
-			RT5659_M_DAC_L2_STO_L | RT5659_M_DAC_L2_STO_R,
-			sto_dac_mixer);
-		snd_soc_update_bits(codec, RT5659_MONO_DAC_MIXER,
-			RT5659_M_DAC_L2_MONO_L | RT5659_M_DAC_L2_MONO_R,
-			mono_dac_mixer);
+		schedule_delayed_work(&rt5659->dac2l_depop_work,
+			msecs_to_jiffies(0));
 		break;
 
 	default:
@@ -3465,14 +3452,16 @@ static int rt5659_monor_filter_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = w->codec;
-	static unsigned int sto_dac_mixer, mono_dac_mixer;
+	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
 
 	pr_debug("%s\n", __func__);
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
-		sto_dac_mixer = snd_soc_read(codec, RT5659_STO_DAC_MIXER);
-		mono_dac_mixer = snd_soc_read(codec, RT5659_MONO_DAC_MIXER);
+		rt5659->dac2r_sto_dac_mixer =
+			snd_soc_read(codec, RT5659_STO_DAC_MIXER);
+		rt5659->dac2r_mono_dac_mixer =
+			snd_soc_read(codec, RT5659_MONO_DAC_MIXER);
 
 		snd_soc_update_bits(codec, RT5659_STO_DAC_MIXER,
 			RT5659_M_DAC_R2_STO_L | RT5659_M_DAC_R2_STO_R,
@@ -3483,12 +3472,8 @@ static int rt5659_monor_filter_event(struct snd_soc_dapm_widget *w,
 		break;
 
 	case SND_SOC_DAPM_POST_PMU:
-		snd_soc_update_bits(codec, RT5659_STO_DAC_MIXER,
-			RT5659_M_DAC_R2_STO_L | RT5659_M_DAC_R2_STO_R,
-			sto_dac_mixer);
-		snd_soc_update_bits(codec, RT5659_MONO_DAC_MIXER,
-			RT5659_M_DAC_R2_MONO_L | RT5659_M_DAC_R2_MONO_R,
-			mono_dac_mixer);
+		schedule_delayed_work(&rt5659->dac2r_depop_work,
+			msecs_to_jiffies(0));
 		break;
 
 	default:
@@ -5554,20 +5539,48 @@ static void rt5659_i2s_switch_slave_work_2(struct work_struct *work)
 	snd_soc_read(codec, RT5659_DEVICE_ID);
 }
 
-static void rt5659_i2s1_depop_work(struct work_struct *work)
+static void rt5659_dac1_depop_work(struct work_struct *work)
 {
 	struct rt5659_priv *rt5659 =
-		container_of(work, struct rt5659_priv, i2s1_depop_work.work);
+		container_of(work, struct rt5659_priv, dac1_depop_work.work);
 	struct snd_soc_codec *codec = rt5659->codec;
 
 	snd_soc_update_bits(codec, RT5659_STO_DAC_MIXER,
 		RT5659_M_DAC_L1_STO_L | RT5659_M_DAC_R1_STO_L |
 		RT5659_M_DAC_L1_STO_R | RT5659_M_DAC_R1_STO_R,
-		rt5659->sto_dac_mixer);
+		rt5659->dac1_sto_dac_mixer);
 	snd_soc_update_bits(codec, RT5659_MONO_DAC_MIXER,
 		RT5659_M_DAC_L1_MONO_L | RT5659_M_DAC_R1_MONO_L |
 		RT5659_M_DAC_L1_MONO_R | RT5659_M_DAC_R1_MONO_R,
-		rt5659->mono_dac_mixer);
+		rt5659->dac1_mono_dac_mixer);
+}
+
+static void rt5659_dac2l_depop_work(struct work_struct *work)
+{
+	struct rt5659_priv *rt5659 =
+		container_of(work, struct rt5659_priv, dac2l_depop_work.work);
+	struct snd_soc_codec *codec = rt5659->codec;
+
+	snd_soc_update_bits(codec, RT5659_STO_DAC_MIXER,
+		RT5659_M_DAC_L2_STO_L | RT5659_M_DAC_L2_STO_R,
+		rt5659->dac2l_sto_dac_mixer);
+	snd_soc_update_bits(codec, RT5659_MONO_DAC_MIXER,
+		RT5659_M_DAC_L2_MONO_L | RT5659_M_DAC_L2_MONO_R,
+		rt5659->dac2l_mono_dac_mixer);
+}
+
+static void rt5659_dac2r_depop_work(struct work_struct *work)
+{
+	struct rt5659_priv *rt5659 =
+		container_of(work, struct rt5659_priv, dac2r_depop_work.work);
+	struct snd_soc_codec *codec = rt5659->codec;
+
+	snd_soc_update_bits(codec, RT5659_STO_DAC_MIXER,
+		RT5659_M_DAC_R2_STO_L | RT5659_M_DAC_R2_STO_R,
+		rt5659->dac2r_sto_dac_mixer);
+	snd_soc_update_bits(codec, RT5659_MONO_DAC_MIXER,
+		RT5659_M_DAC_R2_MONO_L | RT5659_M_DAC_R2_MONO_R,
+		rt5659->dac2r_mono_dac_mixer);
 }
 
 int rt5659_cal_data_write_efs(struct rt5659_cal_data *cal_data)
@@ -5875,7 +5888,9 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 		rt5659_i2s_switch_slave_work_1);
 	INIT_DELAYED_WORK(&rt5659->i2s_switch_slave_work[RT5659_AIF3],
 		rt5659_i2s_switch_slave_work_2);
-	INIT_DELAYED_WORK(&rt5659->i2s1_depop_work, rt5659_i2s1_depop_work);
+	INIT_DELAYED_WORK(&rt5659->dac1_depop_work, rt5659_dac1_depop_work);
+	INIT_DELAYED_WORK(&rt5659->dac2l_depop_work, rt5659_dac2l_depop_work);
+	INIT_DELAYED_WORK(&rt5659->dac2r_depop_work, rt5659_dac2r_depop_work);
 	INIT_DELAYED_WORK(&rt5659->calibrate_work, rt5659_calibrate_handler);
 	init_waitqueue_head(&rt5659->waitqueue_cal);
 
