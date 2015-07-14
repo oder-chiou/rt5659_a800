@@ -3402,7 +3402,7 @@ static int rt5659_sto1_filter_event(struct snd_soc_dapm_widget *w,
 
 	case SND_SOC_DAPM_POST_PMU:
 		schedule_delayed_work(&rt5659->dac1_depop_work,
-			msecs_to_jiffies(0));
+			msecs_to_jiffies(10));
 		break;
 
 	default:
@@ -3438,7 +3438,7 @@ static int rt5659_monol_filter_event(struct snd_soc_dapm_widget *w,
 
 	case SND_SOC_DAPM_POST_PMU:
 		schedule_delayed_work(&rt5659->dac2l_depop_work,
-			msecs_to_jiffies(0));
+			msecs_to_jiffies(10));
 		break;
 
 	default:
@@ -3473,7 +3473,7 @@ static int rt5659_monor_filter_event(struct snd_soc_dapm_widget *w,
 
 	case SND_SOC_DAPM_POST_PMU:
 		schedule_delayed_work(&rt5659->dac2r_depop_work,
-			msecs_to_jiffies(0));
+			msecs_to_jiffies(10));
 		break;
 
 	default:
