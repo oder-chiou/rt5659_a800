@@ -63,11 +63,12 @@ static struct reg_default init_list[] = {
 	{RT5659_CLASSD_0,		0x2021},
 	{RT5659_HP_CALIB_CTRL_7,	0x0000},
 	/* Jack detect (JD3 to IRQ)*/
-	{RT5659_RC_CLK_CTRL,		0x9000},
+	{RT5659_RC_CLK_CTRL,		0x0100},
+	{RT5659_JD_CTRL_2,		0x0600},
+	{RT5659_IRQ_CTRL_1,		0x0008},
 	{RT5659_GPIO_CTRL_1,		0x8000}, /*set GPIO1 to IRQ*/
 	{RT5659_GPIO_CTRL_2,		0x8000}, /*set GPIO to I2S3*/
-	{RT5659_PWR_ANLG_2,		0x0001}, /*JD3 power on */
-	{RT5659_IRQ_CTRL_2,		0x0040}, /*JD3 detection*/
+	{RT5659_PWR_ANLG_2,		0x0001}, /*JD3 power on*/
 	{RT5659_EJD_CTRL_1,		0x70c0},
 	{RT5659_ASRC_8,			0x0120},
 	{RT5659_4BTN_IL_CMD_1,		0x000b},
