@@ -62,7 +62,7 @@ static struct reg_default init_list[] = {
 	{RT5659_MONO_GAIN,		0x0003},
 	{RT5659_CLASSD_0,		0x2021},
 	{RT5659_HP_CALIB_CTRL_7,	0x0000},
-	/* Jack detect (JD3 to IRQ)*/
+	/* Jack detect (GPIO JD2 to IRQ)*/
 	{RT5659_RC_CLK_CTRL,		0x0100},
 	{RT5659_JD_CTRL_2,		0x0600},
 	{RT5659_IRQ_CTRL_1,		0x0008},
@@ -1533,7 +1533,7 @@ int rt5659_check_jd_status(struct snd_soc_codec *codec)
 	val1 = snd_soc_read(codec, RT5659_INT_ST_1);
 	pr_info("%s : val1 = %x\n", __func__, val1);
 
-	val = snd_soc_read(codec, RT5659_INT_ST_1) & 0x0080;
+	val = snd_soc_read(codec, RT5659_INT_ST_1) & 0x0800;
 	mutex_unlock(&rt5659->calibrate_mutex);
 	pr_info("%s : %x\n", __func__, val);
 	if (!val) {  /* Jack insert */
