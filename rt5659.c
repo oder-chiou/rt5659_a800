@@ -1743,15 +1743,15 @@ static void rt5659_noise_gate(struct snd_soc_codec *codec, bool enable)
 				0x3000, 0x3000);
 		}
 	} else {
+		if (rt5659->v_id >= 0x3) {
+			snd_soc_update_bits(codec, RT5659_DUMMY_2, 0x3000, 0x0);
+			snd_soc_update_bits(codec, RT5659_MICBIAS_2, 0x0100,
+				0x0000);
+		}
 		snd_soc_update_bits(codec, RT5659_STO_DRE_CTRL_1, 0x8000,
 			0x0000);
 		snd_soc_update_bits(codec, RT5659_SILENCE_CTRL, 0x8000, 0x0000);
 		snd_soc_update_bits(codec, RT5659_DIG_MISC, 0x0080, 0x0000);
-		if (rt5659->v_id >= 0x3) {
-			snd_soc_update_bits(codec, RT5659_MICBIAS_2, 0x0100,
-				0x0000);
-			snd_soc_update_bits(codec, RT5659_DUMMY_2, 0x3000, 0x0);
-		}
 	}
 }
 
@@ -3631,7 +3631,7 @@ static const struct snd_soc_dapm_widget rt5659_dapm_widgets[] = {
 	SND_SOC_DAPM_PGA("BST2", SND_SOC_NOPM, 0, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("BST3", SND_SOC_NOPM, 0, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("BST4", SND_SOC_NOPM, 0, 0, NULL, 0),
-	SND_SOC_DAPM_SUPPLY_S("BST1 Power", 1,SND_SOC_NOPM, 0, 0,
+	SND_SOC_DAPM_SUPPLY_S("BST1 Power", 1, SND_SOC_NOPM, 0, 0,
 		set_bst1_power, SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMU),
 	SND_SOC_DAPM_SUPPLY_S("BST2 Power", 1, SND_SOC_NOPM, 0, 0,
 		set_bst2_power, SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMU),
@@ -3731,7 +3731,7 @@ static const struct snd_soc_dapm_widget rt5659_dapm_widgets[] = {
 	SND_SOC_DAPM_MIXER("Mono ADC MIXR", SND_SOC_NOPM, 0, 1,
 		rt5659_mono_adc_r_mix, ARRAY_SIZE(rt5659_mono_adc_r_mix)),
 
-	/* ADC Filter power */
+	/* ADC Filter Power */
 	SND_SOC_DAPM_SUPPLY_S("ADC Stereo1 Filter", 4, RT5659_PWR_DIG_2,
 		RT5659_PWR_ADC_S1F_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY_S("ADC Stereo2 Filter", 4, RT5659_PWR_DIG_2,
@@ -4810,7 +4810,7 @@ static ssize_t rt5659_codec_show(struct device *dev,
 		cnt += snprintf(buf + cnt, RT5659_REG_DISP_LEN,
 				 "%04x: %04x\n", i, val);
 	}
-	
+
 	if (cnt >= PAGE_SIZE)
 		cnt = PAGE_SIZE - 1;
 
@@ -5776,7 +5776,7 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 	regmap_read(rt5659->regmap, RT5659_VENDOR_ID, &rt5659->v_id);
 	regmap_update_bits(rt5659->regmap, RT5659_DUMMY_2, 0x0100, 0x0000);
 
-	pr_debug("%s: dmic1_data_pin = %d, dmic2_data_pin =%d",	__func__,
+	pr_debug("%s: dmic1_data_pin = %d, dmic2_data_pin =%d\n", __func__,
 		rt5659->pdata.dmic1_data_pin, rt5659->pdata.dmic2_data_pin);
 
 	/* line in diff mode*/
