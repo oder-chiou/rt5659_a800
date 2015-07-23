@@ -1736,22 +1736,11 @@ static void rt5659_noise_gate(struct snd_soc_codec *codec, bool enable)
 			0x8800);
 		snd_soc_update_bits(codec, RT5659_DIG_MISC, 0x0080,
 			0x0080);
-		if (rt5659->v_id >= 0x3) {
-			snd_soc_update_bits(codec, RT5659_MICBIAS_2,
-				0x0100, 0x0100);
-			snd_soc_update_bits(codec, RT5659_DUMMY_2,
-				0x3000, 0x3000);
-		}
 	} else {
 		snd_soc_update_bits(codec, RT5659_STO_DRE_CTRL_1, 0x8000,
 			0x0000);
 		snd_soc_update_bits(codec, RT5659_SILENCE_CTRL, 0x8000, 0x0000);
 		snd_soc_update_bits(codec, RT5659_DIG_MISC, 0x0080, 0x0000);
-		if (rt5659->v_id >= 0x3) {
-			snd_soc_update_bits(codec, RT5659_MICBIAS_2, 0x0100,
-				0x0000);
-			snd_soc_update_bits(codec, RT5659_DUMMY_2, 0x3000, 0x0);
-		}
 	}
 }
 
@@ -5747,10 +5736,6 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 	}
 
 	regmap_write(rt5659->regmap, RT5659_RESET, 0);
-
-	regmap_update_bits(rt5659->regmap, RT5659_DUMMY_2, 0x0100, 0x0100);
-	regmap_read(rt5659->regmap, RT5659_VENDOR_ID, &rt5659->v_id);
-	regmap_update_bits(rt5659->regmap, RT5659_DUMMY_2, 0x0100, 0x0000);
 
 	pr_debug("%s: dmic1_data_pin = %d, dmic2_data_pin =%d",	__func__,
 		rt5659->pdata.dmic1_data_pin, rt5659->pdata.dmic2_data_pin);
