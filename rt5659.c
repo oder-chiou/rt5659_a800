@@ -5136,6 +5136,7 @@ static int rt5659_suspend(struct snd_soc_codec *codec)
 		RT5659_I2S_MS_S);
 	snd_soc_update_bits(codec, RT5659_I2S3_SDP, RT5659_I2S_MS_MASK,
 		RT5659_I2S_MS_S);
+	snd_soc_read(codec, RT5659_DEVICE_ID);
 
 	return 0;
 }
