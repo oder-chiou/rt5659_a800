@@ -1623,7 +1623,7 @@ int rt5659_get_jack_type(struct snd_soc_codec *codec, unsigned long action)
 		regmap_update_bits(rt5659->regmap, RT5659_PWR_ANLG_1,
 			RT5659_PWR_MB | RT5659_PWR_VREF1 | RT5659_PWR_VREF2 |
 			RT5659_PWR_FV1 | RT5659_PWR_FV2, 0);
-	
+
 	if (action) {
 		mutex_unlock(&rt5659->calibrate_mutex);
 		return 2;

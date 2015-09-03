@@ -1436,6 +1436,9 @@
 
 		<!-- call forwarding input -->
 		<path name="call_forwarding_master-mic">
+			<ctl name="Stereo ADC Control" value="Enable"/>
+			<ctl name="Mono ADC L Control" value="Enable"/>
+			<ctl name="Mono ADC R Control" value="Enable"/>
 			<ctl name="DA MONOL Clk Sel" value="clk_i2s2_track"/>
 			<ctl name="DA MONOR Clk Sel" value="clk_i2s2_track"/>
 			<ctl name="DAC L2 Mux" value="IF2 DAC"/>
