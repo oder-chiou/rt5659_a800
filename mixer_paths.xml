@@ -1439,6 +1439,21 @@
 			<ctl name="Stereo ADC Control" value="Enable"/>
 			<ctl name="Mono ADC L Control" value="Enable"/>
 			<ctl name="Mono ADC R Control" value="Enable"/>
+			<ctl name="Stereo1 ADC MIXL ADC1 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXR ADC1 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXL ADC2 Switch" value="0"/>
+			<ctl name="Stereo1 ADC MIXR ADC2 Switch" value="0"/>
+			<ctl name="Mono ADC MIXL ADC1 Switch" value="0"/>
+			<ctl name="Mono ADC MIXL ADC2 Switch" value="0"/>
+			<ctl name="Mono ADC MIXR ADC1 Switch" value="0"/>
+			<ctl name="Mono ADC MIXR ADC2 Switch" value="0"/>
+			<ctl name="RECMIX1R BST1 Switch" value="0"/>
+			<ctl name="RECMIX1L BST1 Switch" value="0"/>
+			<ctl name="RECMIX1R BST3 Switch" value="0"/>
+			<ctl name="RECMIX1L BST4 Switch" value="0"/>
+			<ctl name="Headset Mic Switch" value="0" />
+			<ctl name="Main Mic Switch" value="0" />
+			<ctl name="Sub Mic Switch" value="0" />
 			<ctl name="DA MONOL Clk Sel" value="clk_i2s2_track"/>
 			<ctl name="DA MONOR Clk Sel" value="clk_i2s2_track"/>
 			<ctl name="DAC L2 Mux" value="IF2 DAC"/>
